@@ -29,3 +29,7 @@ Existing validated summary copied:
 
 - `outputs/single_proxy_formal_rebound_summary.json`
 
+
+## 2026-08-03 Dependency Completion
+
+Added shared runtime dependencies under : , , , , and .
