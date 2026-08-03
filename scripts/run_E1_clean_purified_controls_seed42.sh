@@ -3,6 +3,7 @@ set -euo pipefail
 
 ART=/root/autodl-tmp/experiments/artifacts
 PY=/root/miniconda3/envs/aaai/bin/python
+TORCHRUN=/root/miniconda3/envs/aaai/bin/torchrun
 SEED=42
 
 CLEAN_CKPT=/root/autodl-tmp/checkpoints/clip-clean-pretrained/RN50.pt
@@ -61,7 +62,7 @@ run_par_clean() {
   cd "$PAR_ROOT"
   local par_log="$LOG_ROOT/par_clean_train.log"
   echo "[$(date)] START PAR on clean RN50" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
-  MASTER_PORT=29541 torchrun --standalone --nproc_per_node=1 train.py \
+  MASTER_PORT=29541 "$TORCHRUN" --standalone --nproc_per_node=1 train.py \
     --dataset cc3m \
     --load-pretrained-clip "$CLEAN_CKPT" \
     --model RN50 \

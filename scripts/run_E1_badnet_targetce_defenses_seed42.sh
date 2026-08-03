@@ -6,10 +6,10 @@ PY=/root/miniconda3/envs/aaai/bin/python
 TORCHRUN=/root/miniconda3/envs/aaai/bin/torchrun
 SEED=42
 
-ATTACK_LOG_ROOT="$ART/logs/E1_badnet_attack_strong/poison_logs/rn50_badnet_random_p5pct_ep5_s42"
-ATTACK_CKPT="$ATTACK_LOG_ROOT/checkpoints/epoch_5.pt"
-OUT_ROOT="$ART/outputs/E1_badnet_defenses"
-LOG_ROOT="$ART/logs/E1_badnet_defenses"
+ATTACK_LOG_ROOT="$ART/logs/E1_badnet_attack_targetce/poison_logs/rn50_badnet_random_p10pct_targetce_ep3_s42"
+ATTACK_CKPT="$ATTACK_LOG_ROOT/checkpoints/epoch_3.pt"
+OUT_ROOT="$ART/outputs/E1_badnet_targetce_defenses"
+LOG_ROOT="$ART/logs/E1_badnet_targetce_defenses"
 CKPT_ROOT="$OUT_ROOT/checkpoints"
 CC3M_ROOT=/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K
 CC3M_TRAIN="$CC3M_ROOT/train.csv"
@@ -23,10 +23,10 @@ INV_ROOT="$ART/baselines/defense_baselines/InverTune"
 mkdir -p "$OUT_ROOT" "$LOG_ROOT" "$CKPT_ROOT"
 
 wait_for_attack() {
-  echo "[$(date)] WAIT BadNet-random-5pct attack checkpoint: $ATTACK_CKPT" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
+  echo "[$(date)] WAIT BadNet-targetCE attack checkpoint: $ATTACK_CKPT" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
   while [[ ! -f "$ATTACK_CKPT" ]]; do
-    if ! ps -eo cmd | grep -E "bash scripts/run_E1_badnet_attack_strong_seed42.sh|src/main.py --name rn50_badnet_random_p5pct_ep5_s42" | grep -v grep >/dev/null; then
-      echo "[$(date)] ERROR BadNet-random-5pct attack process stopped before epoch_5 checkpoint" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
+    if ! ps -eo cmd | grep -E "bash scripts/run_E1_badnet_attack_targetce_seed42.sh|src/main.py --name rn50_badnet_random_p10pct_targetce_ep3_s42" | grep -v grep >/dev/null; then
+      echo "[$(date)] ERROR BadNet-targetCE attack process stopped before epoch_3 checkpoint" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
       exit 2
     fi
     sleep 60
@@ -114,7 +114,7 @@ run_par() {
     --lr-end 1e-9 \
     --loss-thresh 2.15 \
     --output-dir "$OUT_ROOT/par_outputs" \
-    --addendum badnet_random_s42 \
+    --addendum badnet_targetce_s42 \
     --imagenet-root "$OUT_ROOT/par_strict/imagenet_imagefolder_5pc" \
     2>&1 | tee "$par_log"
   local final
@@ -127,7 +127,7 @@ run_par() {
 }
 
 run_cleanclip() {
-  local ckpt="$LOG_ROOT/cleanclip_logs/cleanclip_badnet_random_s42/checkpoints/epoch.pt"
+  local ckpt="$LOG_ROOT/cleanclip_logs/cleanclip_badnet_targetce_s42/checkpoints/epoch.pt"
   if [[ -f "$ckpt" ]]; then
     echo "[$(date)] SKIP CleanCLIP checkpoint exists: $ckpt" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
     return
@@ -135,7 +135,7 @@ run_cleanclip() {
   cd "$BADCLIP_ROOT"
   echo "[$(date)] START CleanCLIP BadNet defense" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
   "$PY" -u src/main.py \
-    --name cleanclip_badnet_random_s42 \
+    --name cleanclip_badnet_targetce_s42 \
     --logs "$LOG_ROOT/cleanclip_logs" \
     --checkpoint "$ATTACK_CKPT" \
     --train_data "$CC3M_STRICT" \
@@ -159,7 +159,7 @@ run_cleanclip() {
 }
 
 write_invertune_config() {
-  "$PY" - "$INV_ROOT/config/badclip_banana_paper.yaml" "$OUT_ROOT/badnet_random_invertune.yaml" "$ATTACK_CKPT" "$OUT_ROOT/invertune_badnet_random_s42" <<'PY'
+  "$PY" - "$INV_ROOT/config/badclip_banana_paper.yaml" "$OUT_ROOT/badnet_targetce_invertune.yaml" "$ATTACK_CKPT" "$OUT_ROOT/invertune_badnet_targetce_s42" <<'PY'
 import sys, yaml
 src, dst, ckpt, root = sys.argv[1:5]
 with open(src) as f:
@@ -179,7 +179,7 @@ PY
 }
 
 run_invertune() {
-  local ckpt="$OUT_ROOT/invertune_badnet_random_s42/checkpoints/defended_model.pt"
+  local ckpt="$OUT_ROOT/invertune_badnet_targetce_s42/checkpoints/defended_model.pt"
   if [[ -f "$ckpt" ]]; then
     echo "[$(date)] SKIP InverTune checkpoint exists: $ckpt" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
     return
@@ -187,20 +187,20 @@ run_invertune() {
   write_invertune_config
   cd "$INV_ROOT"
   echo "[$(date)] START InverTune BadNet inversion" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
-  "$PY" -u BadCLIPTriggerInversionPaper.py --config "$OUT_ROOT/badnet_random_invertune.yaml" \
+  "$PY" -u BadCLIPTriggerInversionPaper.py --config "$OUT_ROOT/badnet_targetce_invertune.yaml" \
     2>&1 | tee "$LOG_ROOT/invertune_trigger_inversion.log"
   echo "[$(date)] START InverTune BadNet tuning" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
-  "$PY" -u BadCLIPActivationTuningPaper.py --config "$OUT_ROOT/badnet_random_invertune.yaml" \
+  "$PY" -u BadCLIPActivationTuningPaper.py --config "$OUT_ROOT/badnet_targetce_invertune.yaml" \
     2>&1 | tee "$LOG_ROOT/invertune_activation_tuning.log"
 }
 
 wait_for_attack
-run_downstream rn50_badnet_nodef_full_s42 "$ATTACK_CKPT" full
+run_downstream rn50_badnet_targetce_nodef_full_s42 "$ATTACK_CKPT" full
 run_par
 run_cleanclip
 run_invertune
-run_downstream rn50_badnet_par_full_s42 "$CKPT_ROOT/par_cleaned_rn50.pt" full
-run_downstream rn50_badnet_cleanclip_full_s42 "$LOG_ROOT/cleanclip_logs/cleanclip_badnet_random_s42/checkpoints/epoch.pt" full
-run_downstream rn50_badnet_invertune_full_s42 "$OUT_ROOT/invertune_badnet_random_s42/checkpoints/defended_model.pt" full
-run_downstream rn50_badnet_par_proj_s42 "$CKPT_ROOT/par_cleaned_rn50.pt" lora
-echo "[$(date)] DONE BadNet E1 defenses" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
+run_downstream rn50_badnet_targetce_par_full_s42 "$CKPT_ROOT/par_cleaned_rn50.pt" full
+run_downstream rn50_badnet_targetce_cleanclip_full_s42 "$LOG_ROOT/cleanclip_logs/cleanclip_badnet_targetce_s42/checkpoints/epoch.pt" full
+run_downstream rn50_badnet_targetce_invertune_full_s42 "$OUT_ROOT/invertune_badnet_targetce_s42/checkpoints/defended_model.pt" full
+run_downstream rn50_badnet_targetce_par_proj_s42 "$CKPT_ROOT/par_cleaned_rn50.pt" lora
+echo "[$(date)] DONE BadNet-targetCE E1 defenses" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
