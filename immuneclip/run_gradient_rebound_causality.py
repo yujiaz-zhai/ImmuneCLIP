@@ -307,6 +307,21 @@ def random_direction_like(params):
     ]
 
 
+def shuffled_direction_like(s_grads):
+    shuffled = []
+    for s in s_grads:
+        if s is None:
+            shuffled.append(None)
+            continue
+        flat = s.detach().reshape(-1)
+        if flat.numel() <= 1:
+            shuffled.append(flat.clone().reshape_as(s))
+            continue
+        idx = torch.randperm(flat.numel(), device=flat.device)
+        shuffled.append(flat[idx].reshape_as(s).contiguous())
+    return shuffled
+
+
 def unit_projection_from_existing_grads(params, s_grads, eps: float = 1e-12) -> torch.Tensor:
     dot, s_norm, _coeff, _cos = project_existing_grads(params, s_grads, enabled=False, eps=eps)
     return -dot / (s_norm + eps)
@@ -458,6 +473,8 @@ def run(args):
             trigger_kind = args.project_trigger
             if trigger_kind == "proxy" and proxy_trigger is None:
                 trigger_kind = "oracle"
+            if trigger_kind == "proxy_shuffled" and proxy_trigger is None:
+                raise RuntimeError("--project_trigger proxy_shuffled requires --proxy_trigger_path")
             if trigger_kind == "random":
                 score_project = None
                 s_project = random_direction_like(params)
@@ -481,6 +498,28 @@ def run(args):
                     create_graph=False,
                     allow_unused=True,
                 )
+            elif trigger_kind == "proxy_shuffled":
+                score_project = readout_score(
+                    model,
+                    images,
+                    target_text,
+                    class_texts,
+                    target_index,
+                    "proxy",
+                    oracle_patch,
+                    proxy_trigger,
+                    args.patch_location,
+                    args.score_definition,
+                )
+                proxy_grads = torch.autograd.grad(
+                    score_project,
+                    params,
+                    retain_graph=False,
+                    create_graph=False,
+                    allow_unused=True,
+                )
+                s_project = shuffled_direction_like(proxy_grads)
+                del proxy_grads
             else:
                 score_project = readout_score(
                     model,
@@ -501,7 +540,7 @@ def run(args):
                     create_graph=False,
                     allow_unused=True,
                 )
-            if trigger_kind == "proxy":
+            if trigger_kind in {"proxy", "proxy_shuffled"}:
                 score_proxy_value = float(score_project.detach().cpu())
             elif trigger_kind in {"oracle", "random_matched"}:
                 score_oracle_value = float(score_project.detach().cpu())
@@ -516,7 +555,7 @@ def run(args):
                 dot_before, s_norm, coeff, cos_tensor = project_existing_grads(
                     params, s_project, enabled=True, harmful_only=args.project_harmful_only
                 )
-            if trigger_kind == "proxy":
+            if trigger_kind in {"proxy", "proxy_shuffled"}:
                 cos_proxy = float(cos_tensor.cpu())
             elif trigger_kind in {"oracle", "random_matched"}:
                 cos_oracle = float(cos_tensor.cpu())
@@ -657,7 +696,7 @@ def parse_args():
     p.add_argument("--mode", choices=["normal", "project"], default="normal")
     p.add_argument(
         "--project_trigger",
-        choices=["oracle", "proxy", "random", "random_matched"],
+        choices=["oracle", "proxy", "proxy_shuffled", "random", "random_matched"],
         default="oracle",
     )
     p.add_argument("--project_harmful_only", action="store_true")
