@@ -128,3 +128,9 @@ Replacement launched on `autodl-48G-2`:
 | BadNet-random-5pct | random 16x16 patch, random location, target banana | 25000 / 500000 | 5 | 1000 steps | running | `logs/E1_badnet_attack_strong/` |
 
 The BadNet defense queue now waits for `logs/E1_badnet_attack_strong/poison_logs/rn50_badnet_random_p5pct_ep5_s42/checkpoints/epoch_5.pt`.
+
+### 2026-08-03 12:16 CST - E1/E2 completion queue update
+- User requirement clarified: fill every blank in the E1 matrix, including previously unimplemented BadNet baselines, and fill E2 shuffled-proxy control.
+- E1 BadNet weak candidate rn50_badnet_random_poison_ep10_s42 stopped as invalid candidate after epoch_1 ASR=0.0013; replacement rn50_badnet_random_p5pct_ep5_s42 is running from a 5% poisoned random-patch training set.
+- BadNet defense queue waits for epoch_5.pt and will run No-defense, PAR, CleanCLIP, InverTune, and PAR proj/partial rebound evaluations with random patch metadata.
+- E2 shuffled-proxy intervention implemented as proxy gradient tensor shuffling and committed in b9c33e2; queued on server-1 after current E1 jobs.
