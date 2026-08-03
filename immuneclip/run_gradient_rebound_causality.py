@@ -341,6 +341,22 @@ def resolve_ckpt(value: str | None):
     return value
 
 
+def parse_eval_steps(eval_steps: str | None, eval_every: int, total_steps: int) -> set[int]:
+    steps = {0, total_steps}
+    if eval_steps:
+        for part in eval_steps.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            value = int(part)
+            if 0 <= value <= total_steps:
+                steps.add(value)
+        return steps
+    if eval_every > 0:
+        steps.update(range(eval_every, total_steps + 1, eval_every))
+    return steps
+
+
 def run(args):
     configure_higher_order_attention()
     set_seed(args.seed)
@@ -382,9 +398,10 @@ def run(args):
 
     rows = []
     start = time.time()
+    eval_steps = parse_eval_steps(args.eval_steps, args.eval_every, args.steps)
 
     def evaluate(step: int, train_loss: float, cos_oracle=None, cos_proxy=None):
-        if args.eval_every <= 0:
+        if step not in eval_steps:
             return
         model.eval()
         cwd = os.getcwd()
@@ -430,6 +447,7 @@ def run(args):
         coeff = torch.tensor(0.0, device=args.device)
         cos_oracle = None
         projected = False
+        random_match_scale = None
 
         loss_clip.backward()
 
@@ -440,7 +458,6 @@ def run(args):
             trigger_kind = args.project_trigger
             if trigger_kind == "proxy" and proxy_trigger is None:
                 trigger_kind = "oracle"
-            random_match_scale = None
             if trigger_kind == "random":
                 score_project = None
                 s_project = random_direction_like(params)
@@ -595,7 +612,7 @@ def run(args):
             write_jsonl(jsonl_path, record)
             print(json.dumps(record), flush=True)
 
-        if args.eval_every > 0 and (step % args.eval_every == 0 or step == args.steps):
+        if step in eval_steps:
             evaluate(step, float(loss_clip.detach().cpu()), cos_oracle, cos_proxy)
 
     if rows:
@@ -653,6 +670,11 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--steps", type=int, default=300)
     p.add_argument("--eval_every", type=int, default=50)
+    p.add_argument(
+        "--eval_steps",
+        default=None,
+        help="Optional comma-separated evaluation steps. Step 0 and final step are always evaluated.",
+    )
     p.add_argument("--eval_subset", type=int, default=5000)
     p.add_argument("--log_every", type=int, default=10)
     p.add_argument("--diagnostic_every", type=int, default=0)
