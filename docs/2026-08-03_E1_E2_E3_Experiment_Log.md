@@ -7,7 +7,7 @@ This document consolidates experiments run on 2026-08-03 CST. Lightweight logs a
 ## Status Snapshot
 
 - `autodl-48G-1`: no E1/E2/E3 training or downstream process was running at the final check.
-- `autodl-48G-2`: no E1/E2/E3 training or downstream process was running at the final check.
+- `autodl-48G-2`: no GPU-backed E1/E2/E3 training or downstream process was running at the final check. A stale obsolete bash wrapper `scripts/run_E1_badnet_rs_defenses_seed42.sh` was still sleeping while waiting for an unused `E1_badnet_rs_attack` checkpoint; it is not part of the completed BadNet-RS-Fixed line.
 - Existing pushed commits before this consolidation include `40dbe50` for E3 traj-global rescue and `7fea095` for E1 BadNet-RS-Fixed results.
 - This consolidation adds the missing lightweight E1/E2/E3 logs/results from server 1 and this daily log document.
 
