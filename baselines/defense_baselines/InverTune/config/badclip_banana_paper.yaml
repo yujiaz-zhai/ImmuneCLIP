@@ -1,0 +1,55 @@
+seed: 123
+
+data:
+  data_root: /root/autodl-tmp/datasets/imagenet1k
+  batch_size: 64
+  num_workers: 0
+  target_class_id: n07753592
+  target_word: banana
+  target_label: 954
+
+model:
+  clean_model_path: /root/autodl-tmp/checkpoints/clip-clean-pretrained/RN50.pt
+  model_path: /root/autodl-tmp/experiments/badclip_sbl/baseline_1_1_readme_strict/logs/nodefence_badCLIP/checkpoints/epoch_10.pt
+  clip_type: RN50
+  device: auto
+
+attack:
+  patch_path: /root/workspace/aaai-backdoor/baselines/BadCLIP/opti_patches/badCLIP.jpg
+  patch_size: 16
+  patch_location: middle
+
+optimizer:
+  mask_weight: 0.01
+  infonce_weight: 5.0
+  emd_weight: 0.5
+  ssim_weight: 1.0
+
+inversion:
+  epochs: 10
+  max_batches: 20
+  learning_rate: 0.01
+  temperature: 0.07
+  diagnostic_samples: 512
+  minimum_asr: 70.0
+  trigger_path: /root/autodl-tmp/experiments/invertune/results/badclip_banana_paper/inversion/latest.pth
+
+tuning:
+  epochs: 200
+  learning_rate: 0.000008
+  weight_decay: 0.0001
+  beta: 0.5
+  checkpoint_interval: 50
+  candidate_layers:
+    - visual.layer1
+    - visual.layer2
+    - visual.layer3
+    - visual.layer4
+
+evaluation:
+  batch_size: 256
+  checkpoint: /root/autodl-tmp/experiments/invertune/results/badclip_banana_paper/checkpoints/defended_model.pt
+  output: /root/autodl-tmp/experiments/invertune/results/badclip_banana_paper/evaluation/defended_metrics.json
+
+output:
+  root: /root/autodl-tmp/experiments/invertune/results/badclip_banana_paper

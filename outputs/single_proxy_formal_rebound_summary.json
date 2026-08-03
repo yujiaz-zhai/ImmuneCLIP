@@ -1,0 +1,86 @@
+[
+  {
+    "tag": "formal_sp_anchor_kd_s42_rebound_full_ft_strict",
+    "asr_step0": 0.131,
+    "asr_final": 0.466,
+    "asr_max": 0.52,
+    "rebound_delta": 0.335,
+    "aurc_asr": 0.4806166666666667,
+    "ca_step0": 0.491,
+    "ca_final": 0.508,
+    "eval_steps": [
+      0,
+      5,
+      10,
+      20,
+      30,
+      50,
+      100,
+      300
+    ],
+    "summary": "/root/autodl-tmp/experiments/immuneclip/week1/results/traj_formal_sp_anchor_kd_s42_rebound_full_ft_strict_contrastive_full_s42_summary.json"
+  },
+  {
+    "tag": "formal_sp_checkpoint_rho_s42_rebound_full_ft_strict",
+    "asr_step0": 0.014,
+    "asr_final": 0.376,
+    "asr_max": 0.407,
+    "rebound_delta": 0.362,
+    "aurc_asr": 0.37495,
+    "ca_step0": 0.464,
+    "ca_final": 0.492,
+    "eval_steps": [
+      0,
+      5,
+      10,
+      20,
+      30,
+      50,
+      100,
+      300
+    ],
+    "summary": "/root/autodl-tmp/experiments/immuneclip/week1/results/traj_formal_sp_checkpoint_rho_s42_rebound_full_ft_strict_contrastive_full_s42_summary.json"
+  },
+  {
+    "tag": "formal_sp_dir_set_s42_rebound_full_ft_strict",
+    "asr_step0": 0.105,
+    "asr_final": 0.406,
+    "asr_max": 0.456,
+    "rebound_delta": 0.30100000000000005,
+    "aurc_asr": 0.42442500000000005,
+    "ca_step0": 0.491,
+    "ca_final": 0.499,
+    "eval_steps": [
+      0,
+      5,
+      10,
+      20,
+      30,
+      50,
+      100,
+      300
+    ],
+    "summary": "/root/autodl-tmp/experiments/immuneclip/week1/results/traj_formal_sp_dir_set_s42_rebound_full_ft_strict_contrastive_full_s42_summary.json"
+  },
+  {
+    "tag": "formal_sp_traj_approx_s42_rebound_full_ft_strict",
+    "asr_step0": 0.0,
+    "asr_final": 0.116,
+    "asr_max": 0.124,
+    "rebound_delta": 0.116,
+    "aurc_asr": 0.11184166666666667,
+    "ca_step0": 0.439,
+    "ca_final": 0.486,
+    "eval_steps": [
+      0,
+      5,
+      10,
+      20,
+      30,
+      50,
+      100,
+      300
+    ],
+    "summary": "/root/autodl-tmp/experiments/immuneclip/week1/results/traj_formal_sp_traj_approx_s42_rebound_full_ft_strict_contrastive_full_s42_summary.json"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "checkpoint": "/root/autodl-tmp/experiments/badclip_sbl/baseline_1_1_readme_strict/logs/nodefence_badCLIP/checkpoints/epoch_10.pt",
+  "target_class": "banana",
+  "target_label": 954,
+  "num_samples": 50000,
+  "CA": 58.712,
+  "CA_top5": 85.754,
+  "ASR": 82.028,
+  "ASR_non_target": 82.01001001001
+}

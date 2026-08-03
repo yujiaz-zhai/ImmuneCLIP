@@ -1,0 +1,10 @@
+{
+  "checkpoint": "/root/autodl-tmp/experiments/invertune/results/badclip_banana_paper/checkpoints/defended_model.pt",
+  "target_class": "banana",
+  "target_label": 954,
+  "num_samples": 50000,
+  "CA": 57.02,
+  "CA_top5": 84.918,
+  "ASR": 0.052,
+  "ASR_non_target": 0.016016016016016016
+}

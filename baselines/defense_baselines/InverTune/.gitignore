@@ -1,0 +1,17 @@
+
+# Model checkpoints / large model files
+*.pt
+*.pth
+
+# Common large training artifacts
+*.ckpt
+*.bin
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Python cache
+__pycache__/
+*.pyc
