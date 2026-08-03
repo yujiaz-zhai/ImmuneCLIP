@@ -18,16 +18,15 @@ cd "$BADCLIP_ROOT"
 
 echo "[$(date)] START BadNet-targetCE data/attack preparation" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
 if [[ ! -f "$BACKDOOR_CSV" ]]; then
-  "$PY" -u src/add_poisoned_data.py \
-    --input_file "$TRAIN_CSV" \
-    --output_file "$BACKDOOR_CSV" \
-    --backdoor_label banana \
+  "$PY" -m backdoor.create_backdoor_data \
+    --train_data "$TRAIN_CSV" \
+    --templates "$IMAGENET_ROOT/classes.py" \
+    --size_train_data 500000 \
+    --num_backdoor 50000 \
     --patch_type random \
     --patch_location random \
     --patch_size 16 \
-    --num_backdoor 50000 \
-    --max_total 500000 \
-    --seed "$SEED" \
+    --label banana \
     2>&1 | tee "$LOG_ROOT/data_prepare.log"
 fi
 
