@@ -80,15 +80,16 @@ New scripts:
 - `scripts/run_E1_badnet_attack_seed42.sh`: generates `backdoor_banana_random_random_16_500000_1500.csv` and trains RN50 BadNet-random poisoned checkpoint.
 - `scripts/run_E1_projection_existing_seed42.sh`: runs existing Align/BadCLIP purifier checkpoints under the current partial/proj adaptation implementation.
 
-E2 all-param causality completed on `autodl-48G-2`:
+E2 all-param causality completed on `autodl-48G-2` as a single-seed run (`seed=42`).
 
-| Intervention | A0 | A_post | Delta R | CA_T | Output |
-|---|---:|---:|---:|---:|---|
-| Normal benign update | 0.075 | 0.405 | 0.330 | 0.517 | `outputs/E2_causality_allparam_fix2/rn50_align_par_normal_allparam_s42/` |
-| Reactivation-projected | 0.075 | 0.133 | 0.058 | 0.510 | `outputs/E2_causality_allparam_fix2/rn50_align_par_project_oracle_allparam_s42/` |
-| Matched-component random | 0.075 | 0.267 | 0.192 | 0.512 | `outputs/E2_causality_allparam_fix2/rn50_align_par_random_matched_allparam_s42/` |
+| Intervention | A0 | A_post | Delta R | AURC | CA_T | T_0.5 | Output |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Normal benign update | 0.075 | 0.405 | 0.330 | 0.2855 | 0.517 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_normal_allparam_s42/` |
+| Reactivation-projected | 0.075 | 0.133 | 0.058 | 0.0037 | 0.510 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_project_oracle_allparam_s42/` |
+| Matched-component random | 0.075 | 0.267 | 0.192 | 0.1754 | 0.512 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_random_matched_allparam_s42/` |
+| Shuffled-proxy direction | 0.075 | 0.275 | 0.200 | 0.1689 | 0.511 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_proxy_shuffled_allparam_s42/` |
 
-Interpretation: removing the oracle reactivation component suppresses rebound much more strongly than removing a matched-size random component, while CA@1 remains comparable.
+Interpretation: removing the oracle reactivation component suppresses rebound much more strongly than removing a matched-size random component or a shuffled proxy direction, while CA@1 remains comparable. The current result is sufficient for a single-seed pilot; the checklist's final camera-ready standard still requires paired 3-seed confidence bands.
 
 ## 2026-08-03 E1 Coverage Expansion Status Update
 
@@ -134,3 +135,41 @@ The BadNet defense queue now waits for `logs/E1_badnet_attack_strong/poison_logs
 - E1 BadNet weak candidate rn50_badnet_random_poison_ep10_s42 stopped as invalid candidate after epoch_1 ASR=0.0013; replacement rn50_badnet_random_p5pct_ep5_s42 is running from a 5% poisoned random-patch training set.
 - BadNet defense queue waits for epoch_5.pt and will run No-defense, PAR, CleanCLIP, InverTune, and PAR proj/partial rebound evaluations with random patch metadata.
 - E2 shuffled-proxy intervention implemented as proxy gradient tensor shuffling and committed in b9c33e2; queued on server-1 after current E1 jobs.
+
+## 2026-08-03 E2/E3 Checklist Tables
+
+Scope: single-seed pilot results with `seed=42`. `A_post` is the maximum ASR observed over the downstream trajectory. `Delta R` is `max_t(ASR_t - ASR_0)`. `AURC` is the ASR trajectory area recorded by `run_downstream.py`. Rows marked `not run` are experiment-list cells that do not yet have real logged measurements and must not be cited as completed.
+
+### E2: Gradient Projection Causality
+
+| Intervention | A0 | A_post | Delta R | AURC | CA_T | T_0.5 | Source |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Normal benign update | 0.075 | 0.405 | 0.330 | 0.2855 | 0.517 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_normal_allparam_s42/rn50_align_par_normal_allparam_s42_summary.json` |
+| Reactivation-projected | 0.075 | 0.133 | 0.058 | 0.0037 | 0.510 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_project_oracle_allparam_s42/rn50_align_par_project_oracle_allparam_s42_summary.json` |
+| Matched-component random | 0.075 | 0.267 | 0.192 | 0.1754 | 0.512 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_random_matched_allparam_s42/rn50_align_par_random_matched_allparam_s42_summary.json` |
+| Shuffled-proxy direction | 0.075 | 0.275 | 0.200 | 0.1689 | 0.511 | — | `outputs/E2_causality_allparam_fix2/rn50_align_par_proxy_shuffled_allparam_s42/rn50_align_par_proxy_shuffled_allparam_s42_summary.json` |
+
+E2 interpretation: removing the oracle reactivation component suppresses rebound much more strongly than removing a matched-size random component or shuffled proxy direction, while final CA remains close.
+
+### E3: ImmuneCLIP Main Table
+
+Current E3 status: the completed `Align + PAR + ImmuneCLIP` full-FT row is logged but **not yet达标**. It lowers immediate ASR but still rebounds to `A_post=0.408`; this row is kept as an honest failed/weak pilot, not as the final method result.
+
+| Attack | Purifier | Method | Adapt | CA0 | A0 | A_post | Delta R | AURC | CA_T | rho_SP | GPU-h | Source |
+|---|---|---|---|---:|---:|---:|---:|---:|---:|---|---:|---|
+| Align | PAR | purifier only | full | 0.520 | 0.075 | 0.559 | 0.484 | 0.4922 | 0.497 | not logged | — | E1 Align/PAR full baseline reused as E3 purifier-only control |
+| Align | PAR | + compute-matched FT | full | 0.491 | 0.146 | 0.554 | 0.408 | 0.5006 | 0.500 | 0.0253 final `dir_raw_max` | 0.30 | `outputs/E3_align_par_main_seed42/runs/rn50_align_par_compute_matched_cleanft_s42/`, `outputs/E3_align_par_main_seed42/downstream/rn50_align_par_compute_matched_cleanft_s42_rebound_full/` |
+| Align | PAR | + ImmuneCLIP | full | 0.464 | 0.014 | 0.408 | 0.394 | 0.3640 | 0.502 | 0.5341 final `dir_raw_max` | 0.11 | `outputs/E3_align_par_main_seed42/runs/rn50_align_par_immuneclip_checkpoint_rho_s42/`, `outputs/E3_align_par_main_seed42/downstream/rn50_align_par_immuneclip_checkpoint_rho_s42_rebound_full/` |
+| Align | InverTune | purifier only | full | 0.569 | 0.000 | 0.828 | 0.828 | 0.7462 | 0.556 | not logged | — | E1 Align/InverTune full baseline reused as purifier-only control |
+| Align | InverTune | + compute-matched FT | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+| Align | InverTune | + ImmuneCLIP | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+| BadCLIP | PAR | purifier only | full | 0.535 | 0.069 | 0.469 | 0.400 | 0.4021 | 0.519 | not logged | — | E1 BadCLIP/PAR full baseline reused as purifier-only control |
+| BadCLIP | PAR | + ImmuneCLIP | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+| BadCLIP | InverTune | purifier only | full | 0.572 | 0.000 | 0.645 | 0.645 | 0.5587 | 0.568 | not logged | — | E1 BadCLIP/InverTune full baseline reused as purifier-only control |
+| BadCLIP | InverTune | + ImmuneCLIP | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+| Align | PAR | purifier only | proj | 0.520 | 0.075 | 0.553 | 0.478 | 0.5006 | 0.506 | not logged | — | E1 Align/PAR projection baseline reused as purifier-only control |
+| Align | PAR | + ImmuneCLIP | proj | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+| Align | InverTune | purifier only | proj | 0.569 | 0.000 | 0.816 | 0.816 | 0.7383 | 0.562 | not logged | — | E1 Align/InverTune projection baseline reused as purifier-only control |
+| Align | InverTune | + ImmuneCLIP | proj | not run | not run | not run | not run | not run | not run | not run | not run | pending |
+
+E3 issue note: the current `checkpoint_rho` ImmuneCLIP pilot is not final. It reduces immediate ASR from `0.075` to `0.014`, but full benign FT rebounds to `0.408`. The next repair target is to rerun a working `traj_global` single-proxy variant inside artifacts and then re-evaluate 300-step rebound.
