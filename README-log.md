@@ -136,6 +136,33 @@ The BadNet defense queue now waits for `logs/E1_badnet_attack_strong/poison_logs
 - BadNet defense queue waits for epoch_5.pt and will run No-defense, PAR, CleanCLIP, InverTune, and PAR proj/partial rebound evaluations with random patch metadata.
 - E2 shuffled-proxy intervention implemented as proxy gradient tensor shuffling and committed in b9c33e2; queued on server-1 after current E1 jobs.
 
+### 2026-08-03 20:23 CST - E1 BadNet-RS-Fixed Completion
+
+The earlier BadNet-random candidates are retained only as failed/weak candidates. To obtain a usable structured-trigger ATK-3 row without changing the unified downstream evaluator, the completed run below uses `badnet_rs_fixed` trigger metadata with target `banana`. This attack is medium-strength rather than a strong BadCLIP-like attack: No-defense reaches `A_post=0.409`, so these rows should be interpreted as a BadNet sanity/baseline family, not as the main persistence demonstration.
+
+Entry points and logs:
+
+- Attack training: `scripts/run_E1_badnet_rs_fixed_attack_seed42.sh`; log root `logs/E1_badnet_rs_fixed_attack/`.
+- Defenses/rebound: `scripts/run_E1_badnet_rs_fixed_defenses_seed42.sh`; log root `logs/E1_badnet_rs_fixed_defenses/`; output root `outputs/E1_badnet_rs_fixed_defenses/`.
+- Unified downstream data: `/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/cc3m_natural_10K_no_banana_strict.csv`.
+- Attack checkpoint: `logs/E1_badnet_rs_fixed_attack/poison_logs/rn50_badnet_rs_fixed_p10pct_targetce_l10_lr2e6_ep3_s42/checkpoints/epoch_3.pt`.
+
+Completed BadNet-RS-Fixed rows:
+
+| Attack | Purifier | Adapt | A0 | A_post | Delta R | AURC | CA_T | Source |
+|---|---|---|---:|---:|---:|---:|---:|---|
+| BadNet-RS-Fixed | None | full | 0.084 | 0.409 | 0.325 | 0.3718 | 0.554 | `outputs/E1_badnet_rs_fixed_defenses/results/traj_rn50_badnet_rs_fixed_nodef_full_s42_contrastive_full_s42_summary.json` |
+| BadNet-RS-Fixed | PAR | full | 0.050 | 0.392 | 0.342 | 0.3652 | 0.497 | `outputs/E1_badnet_rs_fixed_defenses/results/traj_rn50_badnet_rs_fixed_par_full_s42_contrastive_full_s42_summary.json` |
+| BadNet-RS-Fixed | CleanCLIP | full | 0.143 | 0.195 | 0.052 | 0.1839 | 0.532 | `outputs/E1_badnet_rs_fixed_defenses/results/traj_rn50_badnet_rs_fixed_cleanclip_full_s42_contrastive_full_s42_summary.json` |
+| BadNet-RS-Fixed | InverTune | full | not available | not available | not available | not available | not available | InverTune trigger inversion failed: best inverted ASR `0.39%` < required `70%`; see `logs/E1_badnet_rs_fixed_defenses/invertune_trigger_inversion.log` and `outputs/E1_badnet_rs_fixed_defenses/invertune_badnet_rs_fixed_s42/FAILED.txt`. |
+| BadNet-RS-Fixed | PAR | projection/partial (`ft=lora`) | 0.050 | 0.380 | 0.330 | 0.3611 | 0.509 | `outputs/E1_badnet_rs_fixed_defenses/results/traj_rn50_badnet_rs_fixed_par_proj_s42_contrastive_lora_s42_summary.json` |
+
+Implementation/reproducibility notes:
+
+- PAR originally failed because its ImageNet ASR loader hardcoded `LOC-OF-validation-images` and ignored the artifact `--imagenet-root`. `scripts/run_E1_badnet_rs_fixed_defenses_seed42.sh` now prepares a local symlink and replaces PAR's `asset/imagenet/labels_updated.csv` with the artifact validation labels before launching PAR.
+- PAR logs parse `--backdoor-tuple 1,badnet_rs_fixed,16,random,0.5,banana` as `(True, 'random', 16, 'random', 0.5, 'banana')` inside the upstream PAR code. Final ASR/CA numbers above are therefore taken only from the unified artifact evaluator with explicit `patch_type=badnet_rs_fixed`.
+- InverTune did not produce `checkpoints/defended_model.pt`; the downstream row was skipped by the wrapper and must remain an explicit failed baseline cell, not an inferred result.
+
 ## 2026-08-03 E2/E3 Checklist Tables
 
 Scope: single-seed pilot results with `seed=42`. `A_post` is the maximum ASR observed over the downstream trajectory. `Delta R` is `max_t(ASR_t - ASR_0)`. `AURC` is the ASR trajectory area recorded by `run_downstream.py`. Rows marked `not run` are experiment-list cells that do not yet have real logged measurements and must not be cited as completed.

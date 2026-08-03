@@ -1,0 +1,16 @@
+[Mon Aug  3 17:12:24 CST 2026] WAIT BadNet-RS-Fixed attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_rs_fixed_attack/poison_logs/rn50_badnet_rs_fixed_p10pct_targetce_l10_lr2e6_ep3_s42/checkpoints/epoch_3.pt
+[Mon Aug  3 18:38:25 CST 2026] READY BadNet-RS-Fixed attack checkpoint
+[Mon Aug  3 18:38:25 CST 2026] START downstream rn50_badnet_rs_fixed_nodef_full_s42 ft=full
+[Mon Aug  3 18:47:59 CST 2026] START prepare PAR data
+[Mon Aug  3 18:48:01 CST 2026] START PAR BadNet-RS-Fixed defense
+[Mon Aug  3 18:51:47 CST 2026] WAIT BadNet-RS-Fixed attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_rs_fixed_attack/poison_logs/rn50_badnet_rs_fixed_p10pct_targetce_l10_lr2e6_ep3_s42/checkpoints/epoch_3.pt
+[Mon Aug  3 18:51:47 CST 2026] READY BadNet-RS-Fixed attack checkpoint
+[Mon Aug  3 18:51:47 CST 2026] SKIP downstream rn50_badnet_rs_fixed_nodef_full_s42 (full)
+[Mon Aug  3 18:51:47 CST 2026] START PAR BadNet-RS-Fixed defense
+[Mon Aug  3 19:22:06 CST 2026] START CleanCLIP BadNet-RS-Fixed defense
+[Mon Aug  3 19:45:20 CST 2026] START InverTune BadNet-RS-Fixed inversion
+[Mon Aug  3 19:51:39 CST 2026] START downstream rn50_badnet_rs_fixed_par_full_s42 ft=full
+[Mon Aug  3 20:01:12 CST 2026] START downstream rn50_badnet_rs_fixed_cleanclip_full_s42 ft=full
+[Mon Aug  3 20:10:46 CST 2026] SKIP downstream rn50_badnet_rs_fixed_invertune_full_s42: missing ckpt /root/autodl-tmp/experiments/artifacts/outputs/E1_badnet_rs_fixed_defenses/invertune_badnet_rs_fixed_s42/checkpoints/defended_model.pt
+[Mon Aug  3 20:10:46 CST 2026] START downstream rn50_badnet_rs_fixed_par_proj_s42 ft=lora
+[Mon Aug  3 20:20:11 CST 2026] DONE BadNet-RS-Fixed E1 defenses

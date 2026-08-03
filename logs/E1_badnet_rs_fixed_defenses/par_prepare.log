@@ -1,0 +1,9 @@
+ImmuneCLIP Week1 PAR data preparation
+cc3m_source_csv=/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/train.csv
+cc3m_abs_csv=/root/autodl-tmp/experiments/artifacts/outputs/E1_badnet_rs_fixed_defenses/par_strict/par_cc3m_250000_abs.csv
+cc3m_rows=250000
+imagenet_labels_csv=/root/autodl-tmp/datasets/imagenet1k_badclip/validation/labels.csv
+imagenet_imagefolder_root=/root/autodl-tmp/experiments/artifacts/outputs/E1_badnet_rs_fixed_defenses/par_strict/imagenet_imagefolder_5pc
+imagenet_symlinks=5000
+note=Only paths/views were adapted for the PAR baseline loader; final metrics use scripts/eval_asr_ca.py.
+
