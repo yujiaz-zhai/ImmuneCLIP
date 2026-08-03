@@ -1,0 +1,8 @@
+[Mon Aug  3 11:49:46 CST 2026] WAIT BadNet attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack/poison_logs/rn50_badnet_random_poison_ep10_s42/checkpoints/epoch_10.pt
+[Mon Aug  3 12:04:00 CST 2026] WAIT BadNet-random-5pct attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack_strong/poison_logs/rn50_badnet_random_p5pct_ep5_s42/checkpoints/epoch_5.pt
+[Mon Aug  3 12:04:00 CST 2026] ERROR BadNet-random-5pct attack process stopped before epoch_5 checkpoint
+[Mon Aug  3 12:08:25 CST 2026] WAIT BadNet-random-5pct attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack_strong/poison_logs/rn50_badnet_random_p5pct_ep5_s42/checkpoints/epoch_5.pt
+[Mon Aug  3 13:25:25 CST 2026] READY BadNet attack checkpoint
+[Mon Aug  3 13:25:25 CST 2026] START downstream rn50_badnet_nodef_full_s42 ft=full
+[Mon Aug  3 13:35:01 CST 2026] START prepare PAR data
+[Mon Aug  3 13:35:03 CST 2026] START PAR BadNet defense

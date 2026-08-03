@@ -1,0 +1,139 @@
+2026-08-03,11:46:12 | INFO | Using cuda:0 device
+2026-08-03,11:46:12 | INFO | Params:
+2026-08-03,11:46:12 | INFO | add_backdoor: True
+2026-08-03,11:46:12 | INFO | align_param_keywords: ['visual.layer4', 'visual.attnpool']
+2026-08-03,11:46:12 | INFO | asr: True
+2026-08-03,11:46:12 | INFO | aug_prob: 0.1
+2026-08-03,11:46:12 | INFO | backdoor_sufi: False
+2026-08-03,11:46:12 | INFO | backdoor_target_loss: False
+2026-08-03,11:46:12 | INFO | backdoor_target_mode: pair
+2026-08-03,11:46:12 | INFO | batch_size: 128
+2026-08-03,11:46:12 | INFO | beta1: 0.9
+2026-08-03,11:46:12 | INFO | beta2: 0.999
+2026-08-03,11:46:12 | INFO | blended_alpha: None
+2026-08-03,11:46:12 | INFO | caption_key: caption
+2026-08-03,11:46:12 | INFO | checkpoint: None
+2026-08-03,11:46:12 | INFO | checkpoint_finetune: None
+2026-08-03,11:46:12 | INFO | clean_train_data: None
+2026-08-03,11:46:12 | INFO | clip_weight: 1
+2026-08-03,11:46:12 | INFO | complete_finetune: True
+2026-08-03,11:46:12 | INFO | constraint_weight: 1
+2026-08-03,11:46:12 | INFO | crop_size: 100
+2026-08-03,11:46:12 | INFO | defense: False
+2026-08-03,11:46:12 | INFO | defense_epoch: 30
+2026-08-03,11:46:12 | INFO | delimiter: ,
+2026-08-03,11:46:12 | INFO | device: cuda:0
+2026-08-03,11:46:12 | INFO | device_id: 0
+2026-08-03,11:46:12 | INFO | device_ids: None
+2026-08-03,11:46:12 | INFO | distributed: False
+2026-08-03,11:46:12 | INFO | distributed_backend: nccl
+2026-08-03,11:46:12 | INFO | distributed_init_method: tcp://127.0.0.1:7308
+2026-08-03,11:46:12 | INFO | eda_prob: 0.1
+2026-08-03,11:46:12 | INFO | epochs: 10
+2026-08-03,11:46:12 | INFO | eps: 1e-08
+2026-08-03,11:46:12 | INFO | eval_data_type: ImageNet1K
+2026-08-03,11:46:12 | INFO | eval_frequency: None
+2026-08-03,11:46:12 | INFO | eval_test_data_csv: None
+2026-08-03,11:46:12 | INFO | eval_test_data_dir: /root/autodl-tmp/datasets/imagenet1k_badclip/validation
+2026-08-03,11:46:12 | INFO | eval_train_data_dir: None
+2026-08-03,11:46:12 | INFO | ewc_lambda: 1.0
+2026-08-03,11:46:12 | INFO | ewc_max_batches: None
+2026-08-03,11:46:12 | INFO | finetune: False
+2026-08-03,11:46:12 | INFO | finetune_evaluation: False
+2026-08-03,11:46:12 | INFO | gradient_align: False
+2026-08-03,11:46:12 | INFO | gradient_align_batch_size: 0
+2026-08-03,11:46:12 | INFO | gradient_align_hinge: False
+2026-08-03,11:46:12 | INFO | gradient_align_interval: 1
+2026-08-03,11:46:12 | INFO | gradient_align_margin: 0.0
+2026-08-03,11:46:12 | INFO | gradient_align_mode: poison
+2026-08-03,11:46:12 | INFO | image_key: image
+2026-08-03,11:46:12 | INFO | init: random
+2026-08-03,11:46:12 | INFO | inmodal: False
+2026-08-03,11:46:12 | INFO | inmodal_weight: 1
+2026-08-03,11:46:12 | INFO | label: banana
+2026-08-03,11:46:12 | INFO | label_consistent: False
+2026-08-03,11:46:12 | INFO | lambda_align: 0.5
+2026-08-03,11:46:12 | INFO | lambda_backdoor_target: 1.0
+2026-08-03,11:46:12 | INFO | linear_probe: False
+2026-08-03,11:46:12 | INFO | linear_probe_batch_size: 80
+2026-08-03,11:46:12 | INFO | linear_probe_num_epochs: 10
+2026-08-03,11:46:12 | INFO | log_dir_path: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack/poison_logs/rn50_badnet_random_poison_ep10_s42
+2026-08-03,11:46:12 | INFO | log_file_path: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack/poison_logs/rn50_badnet_random_poison_ep10_s42/output.log
+2026-08-03,11:46:12 | INFO | logs: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack/poison_logs
+2026-08-03,11:46:12 | INFO | lr: 1e-06
+2026-08-03,11:46:12 | INFO | master: True
+2026-08-03,11:46:12 | INFO | model_name: RN50
+2026-08-03,11:46:12 | INFO | name: rn50_badnet_random_poison_ep10_s42
+2026-08-03,11:46:12 | INFO | notes: None
+2026-08-03,11:46:12 | INFO | num_devices: 1
+2026-08-03,11:46:12 | INFO | num_warmup_steps: 10000
+2026-08-03,11:46:12 | INFO | num_workers: 8
+2026-08-03,11:46:12 | INFO | patch_location: random
+2026-08-03,11:46:12 | INFO | patch_name: opti_patches/badCLIP.jpg
+2026-08-03,11:46:12 | INFO | patch_size: 16
+2026-08-03,11:46:12 | INFO | patch_type: random
+2026-08-03,11:46:12 | INFO | pretrained: True
+2026-08-03,11:46:12 | INFO | prog: 256
+2026-08-03,11:46:12 | INFO | progressive: False
+2026-08-03,11:46:12 | INFO | progressive_epochs: None
+2026-08-03,11:46:12 | INFO | rank: 0
+2026-08-03,11:46:12 | INFO | remove_fraction: 0.02
+2026-08-03,11:46:12 | INFO | res: 64
+2026-08-03,11:46:12 | INFO | sam: False
+2026-08-03,11:46:12 | INFO | sam_adaptive: False
+2026-08-03,11:46:12 | INFO | sam_rho: 0.05
+2026-08-03,11:46:12 | INFO | save_files_name: None
+2026-08-03,11:46:12 | INFO | save_final: False
+2026-08-03,11:46:12 | INFO | sbl: False
+2026-08-03,11:46:12 | INFO | sbl_clean_portion: 0.1
+2026-08-03,11:46:12 | INFO | sbl_mixed_portion: 0.85
+2026-08-03,11:46:12 | INFO | sbl_seed: 123
+2026-08-03,11:46:12 | INFO | sbl_step1_backdoor_losses: False
+2026-08-03,11:46:12 | INFO | scale: None
+2026-08-03,11:46:12 | INFO | sec_epochs: 0
+2026-08-03,11:46:12 | INFO | sec_lr: None
+2026-08-03,11:46:12 | INFO | sec_num_warmup_steps: 0
+2026-08-03,11:46:12 | INFO | seed: 42
+2026-08-03,11:46:12 | INFO | stop_epoch: 40
+2026-08-03,11:46:12 | INFO | tigger_pth: None
+2026-08-03,11:46:12 | INFO | train_data: /root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/backdoor_banana_random_random_16_500000_1500.csv
+2026-08-03,11:46:12 | INFO | train_lmdb_path: None
+2026-08-03,11:46:12 | INFO | train_patch_data: None
+2026-08-03,11:46:12 | INFO | unlearn: False
+2026-08-03,11:46:12 | INFO | unlearn_target: -1
+2026-08-03,11:46:12 | INFO | val_lmdb_path: None
+2026-08-03,11:46:12 | INFO | validation_data: None
+2026-08-03,11:46:12 | INFO | wandb: False
+2026-08-03,11:46:12 | INFO | weight_decay: 0.1
+2026-08-03,11:46:43 | INFO | Base evaluation
+2026-08-03,11:46:43 | INFO | Started zeroshot testing
+2026-08-03,11:48:05 | INFO | Finished zeroshot testing
+2026-08-03,11:48:05 | INFO | Results
+2026-08-03,11:48:05 | INFO | zeroshot_top1: 0.0006
+2026-08-03,11:48:05 | INFO | zeroshot_top3: 0.0011
+2026-08-03,11:48:05 | INFO | zeroshot_top5: 0.0018
+2026-08-03,11:48:05 | INFO | zeroshot_top10: 0.0041
+2026-08-03,11:48:05 | INFO | Starting Epoch 1
+2026-08-03,11:48:05 | INFO | Num samples: 499968, Num_batches: 3906
+2026-08-03,11:48:05 | INFO | Gradient alignment disabled
+2026-08-03,11:48:05 | INFO | Explicit backdoor target loss disabled
+2026-08-03,11:50:51 | INFO | Train Epoch: 01 [99968/499968 (20%)]	Loss: 0.841035	BDTarget: skip	⚪ Skip	Time: 166.058	LR: 0.000000078
+2026-08-03,11:53:13 | INFO | Train Epoch: 01 [199936/499968 (40%)]	Loss: 0.772061	BDTarget: skip	⚪ Skip	Time: 142.191	LR: 0.000000156
+2026-08-03,11:55:36 | INFO | Train Epoch: 01 [299904/499968 (60%)]	Loss: 0.577261	BDTarget: skip	⚪ Skip	Time: 142.666	LR: 0.000000234
+2026-08-03,11:57:58 | INFO | Train Epoch: 01 [399872/499968 (80%)]	Loss: 0.485312	BDTarget: skip	⚪ Skip	Time: 142.150	LR: 0.000000312
+2026-08-03,12:00:21 | INFO | Train Epoch: 01 [499840/499968 (100%)]	Loss: 0.460650	BDTarget: skip	⚪ Skip	Time: 142.943	LR: 0.000000390
+2026-08-03,12:00:21 | INFO | Train Epoch: 01 [499968/499968 (100%)]	Loss: 0.583943	BDTarget: skip	⚪ Skip	Time: 0.173	LR: 0.000000391
+2026-08-03,12:00:22 | INFO | Epoch 1 summary: 0/3906 batches had gradient alignment (0.0%)
+2026-08-03,12:00:22 | INFO | Finished Epoch 1, Time Taken: 737.053
+2026-08-03,12:00:22 | INFO | Epoch 1 evaluation
+2026-08-03,12:00:22 | INFO | Started zeroshot testing
+2026-08-03,12:01:45 | INFO | Finished zeroshot testing
+2026-08-03,12:01:45 | INFO | Results
+2026-08-03,12:01:45 | INFO | zeroshot_top1: 0.0013
+2026-08-03,12:01:45 | INFO | zeroshot_top3: 0.0061
+2026-08-03,12:01:45 | INFO | zeroshot_top5: 0.0148
+2026-08-03,12:01:45 | INFO | zeroshot_top10: 0.0457
+2026-08-03,12:01:46 | INFO | Starting Epoch 2
+2026-08-03,12:01:46 | INFO | Num samples: 499968, Num_batches: 3906
+2026-08-03,12:01:46 | INFO | Gradient alignment disabled
+2026-08-03,12:01:46 | INFO | Explicit backdoor target loss disabled

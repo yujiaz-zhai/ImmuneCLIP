@@ -1,0 +1,11 @@
+# ImmuneCLIP downstream | objective=contrastive ft=full ckpt=/root/autodl-tmp/experiments/artifacts/outputs/E3_align_par_main_seed42/runs/rn50_align_par_immuneclip_checkpoint_rho_s42/checkpoints/rn50_align_par_immuneclip_checkpoint_rho_s42_final.pt
+# steps=300 eval_every=50 eval_steps=[5, 10, 20, 30, 50, 100, 200, 300] lr=1e-06 seed=42 downstream=cc3m num_classes=0 target=banana patch=ours_tnature/middle/16/opti_patches/badCLIP.jpg meta={'cc3m_csv': '/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/cc3m_natural_10K_no_banana_strict.csv'}
+{"step": 0, "train_loss": 0.0, "ca_top1": 0.464, "ca_top5": 0.783, "asr_top1": 0.014, "asr_top5": 0.056}
+{"step": 5, "train_loss": 0.015597427263855934, "ca_top1": 0.488, "ca_top5": 0.802, "asr_top1": 0.085, "asr_top5": 0.22}
+{"step": 10, "train_loss": 0.33429938554763794, "ca_top1": 0.496, "ca_top5": 0.814, "asr_top1": 0.166, "asr_top5": 0.35}
+{"step": 20, "train_loss": 0.0007378393202088773, "ca_top1": 0.496, "ca_top5": 0.81, "asr_top1": 0.307, "asr_top5": 0.566}
+{"step": 30, "train_loss": 0.25371870398521423, "ca_top1": 0.498, "ca_top5": 0.791, "asr_top1": 0.36, "asr_top5": 0.623}
+{"step": 50, "train_loss": 0.0692639946937561, "ca_top1": 0.493, "ca_top5": 0.796, "asr_top1": 0.408, "asr_top5": 0.695}
+{"step": 100, "train_loss": 0.00021461499272845685, "ca_top1": 0.504, "ca_top5": 0.797, "asr_top1": 0.404, "asr_top5": 0.687}
+{"step": 200, "train_loss": 0.01855603978037834, "ca_top1": 0.497, "ca_top5": 0.806, "asr_top1": 0.365, "asr_top5": 0.631}
+{"step": 300, "train_loss": 0.06113690882921219, "ca_top1": 0.502, "ca_top5": 0.802, "asr_top1": 0.359, "asr_top5": 0.618}

@@ -1,0 +1,86 @@
+Namespace(train_data='/root/autodl-tmp/experiments/immuneclip_week2/defense_align_ep10/par_strict/par_cc3m_250000_abs.csv', root='/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/images', imagenet_root='/root/autodl-tmp/experiments/immuneclip_week2/defense_align_ep10/par_strict/imagenet_imagefolder_5pc', output_dir='/root/autodl-tmp/experiments/artifacts/outputs/E1_clean_purified_controls/par_outputs/RN50_cc3m_dt_3_8_13_58_samples_250k_lr_3e-06_thresh_2.15_clean_control_s42', model='RN50', backdoor_tuple=(False, 'random', 16, 'random', 0.5, 'banana'), dataset='cc3m', resume='', addendum='clean_control_s42', samples=250000, epochs=2, warmup_epochs=1.0, start_epoch=0, batch_size=128, lr=3e-06, lr_start=3e-05, lr_end=1e-09, update_freq=4, wd=0.0001, loss_thresh=2.15, betas=(0.9, 0.98), eps=1e-08, disable_amp=False, print_freq=8, load_pretrained_clip='openai', workers=4, world_size=1, rank=0, local_rank=0, dist_url='env://', dist_backend='nccl', seed=8, gpu=0, distributed=True)
+Epoch: [0][  0/488]	total-loss 0.2779 (0.3042)	clip-loss 1.3246 (1.4330)	text-loss 0.0000 (0.0000)	img-loss 0.4260 (0.4325)	clip_acc 63.2812 (63.8672)
+
+CLEAN: {'acc1': 48.42426554750095, 'acc5': 75.45879435330026}
+Epoch: [0][ 25/488]	total-loss 0.1241 (0.3507)	clip-loss 1.4830 (1.9657)	text-loss 0.3073 (0.2177)	img-loss 1.6662 (0.9078)	clip_acc 62.5000 (50.7212)
+
+Epoch: [0][ 50/488]	total-loss 0.1590 (0.2584)	clip-loss 0.9599 (1.6187)	text-loss 0.6478 (0.3152)	img-loss 0.0000 (0.8548)	clip_acc 76.5625 (57.8699)
+
+Epoch: [0][ 75/488]	total-loss 0.2039 (0.2251)	clip-loss 0.8158 (1.4519)	text-loss 0.0000 (0.4255)	img-loss 0.0000 (0.6775)	clip_acc 76.5625 (61.7496)
+
+Epoch: [0][100/488]	total-loss 0.1928 (0.2070)	clip-loss 0.7712 (1.3091)	text-loss 0.0000 (0.3624)	img-loss 0.0000 (0.5994)	clip_acc 71.8750 (65.0043)
+
+Epoch: [0][125/488]	total-loss 0.2364 (0.1993)	clip-loss 0.9457 (1.2143)	text-loss 0.0000 (0.3117)	img-loss 0.0000 (0.5226)	clip_acc 71.0938 (67.2015)
+
+Epoch: [0][150/488]	total-loss 0.2021 (0.1882)	clip-loss 0.8083 (1.1345)	text-loss 0.0000 (0.2848)	img-loss 0.0000 (0.4786)	clip_acc 75.0000 (69.0436)
+
+Epoch: [0][175/488]	total-loss 0.1478 (0.1830)	clip-loss 0.5914 (1.0777)	text-loss 0.0000 (0.2564)	img-loss 0.0000 (0.4348)	clip_acc 78.1250 (70.3791)
+
+Epoch: [0][200/488]	total-loss 0.1582 (0.1784)	clip-loss 0.6328 (1.0324)	text-loss 0.0000 (0.2352)	img-loss 0.0000 (0.4019)	clip_acc 78.1250 (71.4892)
+
+CLEAN: {'acc1': 33.54444868370851, 'acc5': 61.91243800076307}
+Epoch: [0][225/488]	total-loss 0.1549 (0.1739)	clip-loss 0.6196 (0.9942)	text-loss 0.0000 (0.2209)	img-loss 0.0000 (0.3763)	clip_acc 83.5938 (72.4108)
+
+Epoch: [0][250/488]	total-loss 0.1497 (0.1680)	clip-loss 0.5988 (0.9591)	text-loss 0.0000 (0.2095)	img-loss 0.0000 (0.3644)	clip_acc 84.3750 (73.2655)
+
+Epoch: [0][275/488]	total-loss 0.1207 (0.1630)	clip-loss 0.4829 (0.9267)	text-loss 0.0000 (0.2002)	img-loss 0.0000 (0.3488)	clip_acc 82.8125 (74.0737)
+
+Epoch: [0][300/488]	total-loss 0.1562 (0.1609)	clip-loss 0.6247 (0.9018)	text-loss 0.0000 (0.1871)	img-loss 0.0000 (0.3287)	clip_acc 80.4688 (74.6833)
+
+Epoch: [0][325/488]	total-loss 0.1533 (0.1585)	clip-loss 0.6134 (0.8787)	text-loss 0.0000 (0.1761)	img-loss 0.0000 (0.3133)	clip_acc 81.2500 (75.2708)
+
+Epoch: [0][350/488]	total-loss 0.1530 (0.1558)	clip-loss 0.6119 (0.8574)	text-loss 0.0000 (0.1681)	img-loss 0.0000 (0.3001)	clip_acc 86.7188 (75.8163)
+
+Epoch: [0][375/488]	total-loss 0.1040 (0.1521)	clip-loss 0.4160 (0.8376)	text-loss 0.0000 (0.1625)	img-loss 0.0000 (0.2957)	clip_acc 82.0312 (76.3163)
+
+Epoch: [0][400/488]	total-loss 0.1309 (0.1494)	clip-loss 0.5234 (0.8193)	text-loss 0.0000 (0.1550)	img-loss 0.0000 (0.2879)	clip_acc 82.0312 (76.7851)
+
+CLEAN: {'acc1': 43.314574589851205, 'acc5': 73.98130484547883}
+Epoch: [0][425/488]	total-loss 0.1254 (0.1468)	clip-loss 0.5017 (0.8029)	text-loss 0.0000 (0.1522)	img-loss 0.0000 (0.2786)	clip_acc 83.5938 (77.1874)
+
+Epoch: [0][450/488]	total-loss 0.1327 (0.1443)	clip-loss 0.5309 (0.7873)	text-loss 0.0000 (0.1473)	img-loss 0.0000 (0.2726)	clip_acc 82.8125 (77.5819)
+
+Epoch: [0][475/488]	total-loss 0.1212 (0.1421)	clip-loss 0.4848 (0.7731)	text-loss 0.0000 (0.1429)	img-loss 0.0000 (0.2661)	clip_acc 85.1562 (77.9732)
+
+Epoch: [1][  0/488]	total-loss -0.0304 (0.1396)	clip-loss 0.8553 (0.7654)	text-loss 0.0000 (0.1434)	img-loss 1.9536 (0.2704)	clip_acc 79.6875 (78.1841)
+
+CLEAN: {'acc1': 47.29015642884395, 'acc5': 77.11083555894697}
+Epoch: [1][ 25/488]	total-loss 0.1166 (0.1338)	clip-loss 0.4663 (0.7466)	text-loss 0.0000 (0.1479)	img-loss 0.0000 (0.2747)	clip_acc 89.0625 (78.6901)
+
+Epoch: [1][ 50/488]	total-loss 0.0761 (0.1295)	clip-loss 0.3046 (0.7284)	text-loss 0.0000 (0.1430)	img-loss 0.0000 (0.2778)	clip_acc 90.6250 (79.1750)
+
+Epoch: [1][ 75/488]	total-loss 0.1139 (0.1254)	clip-loss 0.4555 (0.7122)	text-loss 0.0000 (0.1442)	img-loss 0.0000 (0.2768)	clip_acc 89.8438 (79.6155)
+
+Epoch: [1][100/488]	total-loss 0.0856 (0.1216)	clip-loss 0.3424 (0.6968)	text-loss 0.0000 (0.1435)	img-loss 0.0000 (0.2769)	clip_acc 87.5000 (80.0183)
+
+Epoch: [1][125/488]	total-loss -0.1998 (0.1181)	clip-loss 0.2711 (0.6829)	text-loss 2.1405 (0.1454)	img-loss 0.0000 (0.2752)	clip_acc 93.7500 (80.3953)
+
+Epoch: [1][150/488]	total-loss 0.0838 (0.1152)	clip-loss 0.3350 (0.6702)	text-loss 0.0000 (0.1439)	img-loss 0.0000 (0.2744)	clip_acc 89.0625 (80.7352)
+
+Epoch: [1][175/488]	total-loss 0.1088 (0.1129)	clip-loss 0.4353 (0.6584)	text-loss 0.0000 (0.1433)	img-loss 0.0000 (0.2697)	clip_acc 84.3750 (81.0462)
+
+Epoch: [1][200/488]	total-loss -0.1730 (0.1103)	clip-loss 0.3824 (0.6473)	text-loss 0.0000 (0.1420)	img-loss 2.1490 (0.2700)	clip_acc 89.8438 (81.3628)
+
+CLEAN: {'acc1': 47.09462037390309, 'acc5': 79.30179320869897}
+Epoch: [1][225/488]	total-loss 0.1132 (0.1083)	clip-loss 0.4527 (0.6372)	text-loss 0.0000 (0.1393)	img-loss 0.0000 (0.2680)	clip_acc 85.9375 (81.6353)
+
+Epoch: [1][250/488]	total-loss 0.1002 (0.1065)	clip-loss 0.4010 (0.6277)	text-loss 0.0000 (0.1382)	img-loss 0.0000 (0.2647)	clip_acc 85.9375 (81.8875)
+
+Epoch: [1][275/488]	total-loss 0.0915 (0.1045)	clip-loss 0.3661 (0.6183)	text-loss 0.0000 (0.1358)	img-loss 0.0000 (0.2644)	clip_acc 88.2812 (82.1465)
+
+Epoch: [1][300/488]	total-loss -0.2044 (0.1024)	clip-loss 0.2533 (0.6100)	text-loss 0.0000 (0.1368)	img-loss 2.1418 (0.2635)	clip_acc 94.5312 (82.3678)
+
+Epoch: [1][325/488]	total-loss 0.1142 (0.1011)	clip-loss 0.4569 (0.6017)	text-loss 0.0000 (0.1359)	img-loss 0.0000 (0.2587)	clip_acc 85.9375 (82.6005)
+
+Epoch: [1][350/488]	total-loss 0.0816 (0.0991)	clip-loss 0.3264 (0.5938)	text-loss 0.0000 (0.1357)	img-loss 0.0000 (0.2586)	clip_acc 85.9375 (82.8197)
+
+Epoch: [1][375/488]	total-loss 0.0826 (0.0975)	clip-loss 0.3305 (0.5862)	text-loss 0.0000 (0.1355)	img-loss 0.0000 (0.2567)	clip_acc 90.6250 (83.0301)
+
+Epoch: [1][400/488]	total-loss 0.0833 (0.0963)	clip-loss 0.3333 (0.5795)	text-loss 0.0000 (0.1346)	img-loss 0.0000 (0.2537)	clip_acc 89.8438 (83.2182)
+
+CLEAN: {'acc1': 49.48874475391072, 'acc5': 80.34338038916444}
+Epoch: [1][425/488]	total-loss -0.1853 (0.0945)	clip-loss 0.3234 (0.5729)	text-loss 0.0000 (0.1333)	img-loss 2.1290 (0.2561)	clip_acc 88.2812 (83.3940)
+
+Epoch: [1][450/488]	total-loss 0.0621 (0.0929)	clip-loss 0.2484 (0.5666)	text-loss 0.0000 (0.1320)	img-loss 0.0000 (0.2578)	clip_acc 90.6250 (83.5592)
+
+Epoch: [1][475/488]	total-loss 0.0857 (0.0917)	clip-loss 0.3428 (0.5606)	text-loss 0.0000 (0.1292)	img-loss 0.0000 (0.2577)	clip_acc 89.8438 (83.7232)

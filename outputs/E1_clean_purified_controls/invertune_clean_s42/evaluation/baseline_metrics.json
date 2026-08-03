@@ -1,0 +1,10 @@
+{
+  "checkpoint": "/root/autodl-tmp/experiments/artifacts/outputs/E1_clean_purified_controls/checkpoints/clean_openai_rn50_state.pt",
+  "target_class": "banana",
+  "target_label": 954,
+  "num_samples": 1000,
+  "CA": 77.7,
+  "CA_top5": 96.5,
+  "ASR": 0.0,
+  "ASR_non_target": 0.0
+}

@@ -201,3 +201,15 @@ Current E3 status: the stricter `checkpoint_rho` pilot is logged as an honest fa
 | Align | InverTune | + ImmuneCLIP | proj | not run | not run | not run | not run | not run | not run | not run | not run | pending |
 
 E3 issue note: `checkpoint_rho` remains a failed pilot and should not be cited as the final method result. The repaired `traj_global` single-proxy variant reproduced the historical working behavior inside artifacts: immediate ASR `0.000`, max 300-step rebound ASR `0.131`, final ASR `0.113`, with no `0.5` revival. This row is the current E3 main-method candidate, but it should be described as the working single-proxy trajectory approximation rather than the stricter reachable-checkpoint implementation.
+
+## 2026-08-03 Daily E1/E2/E3 Log Consolidation
+
+Full daily consolidation document:
+
+- `docs/2026-08-03_E1_E2_E3_Experiment_Log.md`
+
+Scope:
+
+- Synchronized lightweight logs/results from `autodl-48G-1` into canonical `autodl-48G-2` artifacts.
+- Recorded E1/E2/E3 result tables, entry points, failure/non-citable rows, summary inventory, and complete log file inventory.
+- Large checkpoint files (`*.pt`, `*.pth`) remain uncommitted; their paths are preserved in logs/summaries.

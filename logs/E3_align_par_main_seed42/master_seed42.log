@@ -1,0 +1,26 @@
+[Mon Aug  3 15:16:38 CST 2026] E3 Align+PAR main seed=42 queued
+[Mon Aug  3 15:16:38 CST 2026] GPU busy (13095 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:18:38 CST 2026] GPU busy (13095 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:20:39 CST 2026] GPU busy (13171 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:22:39 CST 2026] GPU busy (17479 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:24:39 CST 2026] GPU busy (14349 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:26:39 CST 2026] GPU busy (13383 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:28:39 CST 2026] GPU busy (13527 MiB used); waiting before rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 15:30:39 CST 2026] START train rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 16:06:27 CST 2026] DONE train rn50_align_par_compute_matched_cleanft_s42
+[Mon Aug  3 16:06:27 CST 2026] START downstream rn50_align_par_compute_matched_cleanft_s42_rebound_full
+[Mon Aug  3 16:25:22 CST 2026] DONE downstream rn50_align_par_compute_matched_cleanft_s42_rebound_full
+[Mon Aug  3 16:25:22 CST 2026] GPU busy (13329 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:27:22 CST 2026] GPU busy (13517 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:29:22 CST 2026] GPU busy (13469 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:31:22 CST 2026] GPU busy (13469 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:33:22 CST 2026] GPU busy (13625 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:35:23 CST 2026] GPU busy (13625 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:37:23 CST 2026] GPU busy (13625 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:39:23 CST 2026] GPU busy (14803 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:41:23 CST 2026] GPU busy (14803 MiB used); waiting before rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:43:23 CST 2026] START train rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:56:02 CST 2026] DONE train rn50_align_par_immuneclip_checkpoint_rho_s42
+[Mon Aug  3 16:56:02 CST 2026] START downstream rn50_align_par_immuneclip_checkpoint_rho_s42_rebound_full
+[Mon Aug  3 17:05:39 CST 2026] DONE downstream rn50_align_par_immuneclip_checkpoint_rho_s42_rebound_full
+[Mon Aug  3 17:05:39 CST 2026] E3 Align+PAR main seed=42 complete

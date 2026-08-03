@@ -1,0 +1,5 @@
+[Mon Aug  3 15:33:55 CST 2026] START BadNet-RS data/attack preparation
+[Mon Aug  3 16:17:11 CST 2026] GPU busy (4821 MiB); waiting before BadNet-RS attack
+[Mon Aug  3 16:19:11 CST 2026] GPU busy (4821 MiB); waiting before BadNet-RS attack
+[Mon Aug  3 16:19:56 CST 2026] START BadNet-RS data/attack preparation
+[Mon Aug  3 16:19:56 CST 2026] START rn50_badnet_rs_p10pct_targetce_l10_lr2e6_ep3_s42

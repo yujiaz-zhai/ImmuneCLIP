@@ -1,0 +1,49 @@
+{
+  "created_at": "2026-08-03T15:31:11.477350",
+  "init_ckpt": "/root/autodl-tmp/experiments/immuneclip_week2/defense_align_ep10/checkpoints/par_cleaned_rn50.pt",
+  "proxy_augmentations": [
+    {
+      "name": "proxy_trigger.pt:base",
+      "source_path": "/root/autodl-tmp/experiments/immuneclip_week3_blackbox_stage0_formal_ce_rank/proxy_trigger.pt",
+      "target_index": 954,
+      "target_name": "banana"
+    },
+    {
+      "name": "proxy_trigger.pt:weak",
+      "source_path": "/root/autodl-tmp/experiments/immuneclip_week3_blackbox_stage0_formal_ce_rank/proxy_trigger.pt",
+      "target_index": 954,
+      "target_name": "banana"
+    },
+    {
+      "name": "proxy_trigger.pt:shift_up_left",
+      "source_path": "/root/autodl-tmp/experiments/immuneclip_week3_blackbox_stage0_formal_ce_rank/proxy_trigger.pt",
+      "target_index": 954,
+      "target_name": "banana"
+    },
+    {
+      "name": "proxy_trigger.pt:shift_down_right",
+      "source_path": "/root/autodl-tmp/experiments/immuneclip_week3_blackbox_stage0_formal_ce_rank/proxy_trigger.pt",
+      "target_index": 954,
+      "target_name": "banana"
+    }
+  ],
+  "proxy_augmentations_not_hypotheses": true,
+  "proxy_source_path": "/root/autodl-tmp/experiments/immuneclip_week3_blackbox_stage0_formal_ce_rank/proxy_trigger.pt",
+  "proxy_target_index": 954,
+  "proxy_target_name": "banana",
+  "selected_param_count": 14789632,
+  "selected_param_names": [
+    "visual.attnpool.positional_embedding",
+    "visual.attnpool.k_proj.weight",
+    "visual.attnpool.k_proj.bias",
+    "visual.attnpool.q_proj.weight",
+    "visual.attnpool.q_proj.bias",
+    "visual.attnpool.v_proj.weight",
+    "visual.attnpool.v_proj.bias",
+    "visual.attnpool.c_proj.weight",
+    "visual.attnpool.c_proj.bias"
+  ],
+  "single_proxy_mode": true,
+  "target_label_arg": "auto",
+  "target_source_note": "target is read from proxy checkpoint metadata when target_label=auto; if that checkpoint was created with banana supervision, report as target-known."
+}

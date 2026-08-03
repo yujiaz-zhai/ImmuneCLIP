@@ -1,0 +1,11 @@
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+evaluated 256/50000 images
+evaluated 6656/50000 images
+evaluated 13056/50000 images
+evaluated 19456/50000 images
+evaluated 25856/50000 images
+evaluated 32256/50000 images
+evaluated 38656/50000 images
+evaluated 45056/50000 images
+CA=57.57%  ASR=0.06%  ASR(non-target)=0.02%
+saved metrics: /root/autodl-tmp/experiments/artifacts/outputs/E1_badclip_invertune/invertune_badclip_banana_s42/evaluation/defended_metrics.json

@@ -1,0 +1,1 @@
+scripts/run_E1_badnet_defenses_seed42.sh: line 99: torchrun: command not found

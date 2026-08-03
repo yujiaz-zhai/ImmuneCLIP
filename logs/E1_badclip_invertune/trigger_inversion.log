@@ -1,0 +1,12 @@
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+epoch=1/10 loss=657.6854 CE=6.6090 mask_l1=48571.09 inverted_ASR=0.39%
+epoch=2/10 loss=419.1004 CE=6.1966 mask_l1=28093.70 inverted_ASR=20.31%
+epoch=3/10 loss=239.4519 CE=5.6176 mask_l1=13463.45 inverted_ASR=58.79%
+epoch=4/10 loss=116.9186 CE=5.1121 mask_l1=4334.85 inverted_ASR=76.17%
+epoch=5/10 loss=50.7570 CE=4.8985 mask_l1=772.10 inverted_ASR=79.49%
+epoch=6/10 loss=34.5588 CE=4.7870 mask_l1=549.81 inverted_ASR=84.38%
+epoch=7/10 loss=33.0238 CE=4.6452 mask_l1=522.23 inverted_ASR=86.91%
+epoch=8/10 loss=31.9474 CE=4.4551 mask_l1=519.54 inverted_ASR=87.70%
+epoch=9/10 loss=31.1370 CE=4.2761 mask_l1=536.17 inverted_ASR=90.04%
+epoch=10/10 loss=30.5134 CE=4.1643 mask_l1=518.44 inverted_ASR=91.99%
+accepted inverted trigger: ASR=91.99% path=/root/autodl-tmp/experiments/artifacts/outputs/E1_badclip_invertune/invertune_badclip_banana_s42/inversion/latest.pth

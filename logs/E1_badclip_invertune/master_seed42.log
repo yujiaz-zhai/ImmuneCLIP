@@ -1,0 +1,6 @@
+[Mon Aug  3 12:16:29 CST 2026] START BadCLIP InverTune baseline
+[Mon Aug  3 12:24:29 CST 2026] START BadCLIP InverTune inversion
+[Mon Aug  3 12:26:39 CST 2026] START BadCLIP InverTune tuning
+[Mon Aug  3 12:27:41 CST 2026] START BadCLIP InverTune final eval
+[Mon Aug  3 12:35:38 CST 2026] START BadCLIP InverTune downstream full
+[Mon Aug  3 12:45:41 CST 2026] DONE BadCLIP InverTune E1

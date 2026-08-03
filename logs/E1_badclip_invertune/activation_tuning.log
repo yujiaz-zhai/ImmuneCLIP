@@ -1,0 +1,27 @@
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+critical layers: ['visual.layer4']
+critical channels: {'visual.layer4': 142}
+masked parameter tensors: 30
+epoch=1/200 loss=42.597523 alignment=42.597523 preservation=0.000000 inverted_ASR=87.50%
+epoch=10/200 loss=30.215227 alignment=29.680410 preservation=1.069635 inverted_ASR=76.56%
+epoch=20/200 loss=20.917286 alignment=19.959436 preservation=1.915698 inverted_ASR=60.94%
+epoch=30/200 loss=14.359552 alignment=12.903219 preservation=2.912667 inverted_ASR=18.75%
+epoch=40/200 loss=10.110888 alignment=8.084455 preservation=4.052867 inverted_ASR=1.56%
+epoch=50/200 loss=7.374080 alignment=5.216612 preservation=4.314935 inverted_ASR=0.00%
+epoch=60/200 loss=5.553140 alignment=3.509910 preservation=4.086461 inverted_ASR=0.00%
+epoch=70/200 loss=4.213029 alignment=2.475958 preservation=3.474144 inverted_ASR=0.00%
+epoch=80/200 loss=3.169264 alignment=1.732520 preservation=2.873488 inverted_ASR=0.00%
+epoch=90/200 loss=2.418117 alignment=1.172730 preservation=2.490773 inverted_ASR=0.00%
+epoch=100/200 loss=1.876666 alignment=0.793069 preservation=2.167195 inverted_ASR=0.00%
+epoch=110/200 loss=1.484762 alignment=0.537578 preservation=1.894369 inverted_ASR=0.00%
+epoch=120/200 loss=1.204893 alignment=0.361246 preservation=1.687294 inverted_ASR=0.00%
+epoch=130/200 loss=1.009799 alignment=0.248385 preservation=1.522828 inverted_ASR=0.00%
+epoch=140/200 loss=0.867867 alignment=0.177503 preservation=1.380728 inverted_ASR=0.00%
+epoch=150/200 loss=0.757772 alignment=0.130675 preservation=1.254195 inverted_ASR=0.00%
+epoch=160/200 loss=0.673068 alignment=0.099216 preservation=1.147703 inverted_ASR=0.00%
+epoch=170/200 loss=0.607694 alignment=0.078455 preservation=1.058478 inverted_ASR=0.00%
+epoch=180/200 loss=0.554604 alignment=0.064465 preservation=0.980278 inverted_ASR=0.00%
+epoch=190/200 loss=0.507580 alignment=0.054074 preservation=0.907013 inverted_ASR=0.00%
+epoch=200/200 loss=0.469902 alignment=0.046806 preservation=0.846193 inverted_ASR=0.00%
+saved defended model: /root/autodl-tmp/experiments/artifacts/outputs/E1_badclip_invertune/invertune_badclip_banana_s42/checkpoints/defended_model.pt

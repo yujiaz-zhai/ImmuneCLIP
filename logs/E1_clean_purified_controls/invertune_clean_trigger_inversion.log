@@ -1,0 +1,17 @@
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+epoch=1/10 loss=657.2194 CE=6.7558 mask_l1=48275.33 inverted_ASR=0.00%
+epoch=2/10 loss=416.9648 CE=6.7035 mask_l1=27440.36 inverted_ASR=0.00%
+epoch=3/10 loss=236.6514 CE=6.6954 mask_l1=12522.00 inverted_ASR=0.00%
+epoch=4/10 loss=114.4239 CE=6.5552 mask_l1=3486.56 inverted_ASR=0.78%
+epoch=5/10 loss=50.9440 CE=6.4249 mask_l1=273.62 inverted_ASR=2.54%
+epoch=6/10 loss=37.4633 CE=6.2481 mask_l1=218.97 inverted_ASR=7.23%
+epoch=7/10 loss=36.5876 CE=6.0822 mask_l1=224.13 inverted_ASR=12.11%
+epoch=8/10 loss=36.1217 CE=5.9777 mask_l1=229.87 inverted_ASR=15.04%
+epoch=9/10 loss=35.8118 CE=5.9010 mask_l1=236.10 inverted_ASR=17.19%
+epoch=10/10 loss=35.5962 CE=5.8448 mask_l1=241.55 inverted_ASR=19.92%
+Traceback (most recent call last):
+  File "/root/autodl-tmp/experiments/artifacts/baselines/defense_baselines/InverTune/BadCLIPTriggerInversionPaper.py", line 128, in <module>
+    main()
+  File "/root/autodl-tmp/experiments/artifacts/baselines/defense_baselines/InverTune/BadCLIPTriggerInversionPaper.py", line 116, in main
+    raise RuntimeError(
+RuntimeError: Trigger inversion failed: best ASR is 19.92%, below the required 70.00%. Do not run activation tuning.

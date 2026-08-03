@@ -1,0 +1,2 @@
+step,train_loss,cos_update_oracle,cos_update_proxy,ca_top1,ca_top5,asr_top1,asr_top5
+0,0.0,,,0.52,0.81,0.075,0.2

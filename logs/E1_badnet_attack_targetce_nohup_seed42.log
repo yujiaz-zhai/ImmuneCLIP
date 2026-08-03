@@ -1,0 +1,2 @@
+[Mon Aug  3 13:56:26 CST 2026] START BadNet-targetCE data/attack preparation
+/root/miniconda3/envs/aaai/bin/python: can't open file '/root/autodl-tmp/experiments/artifacts/baselines/attack_baselines/BadCLIP_GradAlign/src/add_poisoned_data.py': [Errno 2] No such file or directory

@@ -1,0 +1,6 @@
+[Mon Aug  3 11:41:33 CST 2026] START badnet data/attack preparation
+[Mon Aug  3 11:42:22 CST 2026] START rn50_badnet_random_poison_ep10_s42
+[Mon Aug  3 11:46:10 CST 2026] START badnet data/attack preparation
+[Mon Aug  3 11:46:10 CST 2026] reuse existing /root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/backdoor_banana_random_random_16_500000_1500.csv
+[Mon Aug  3 11:46:10 CST 2026] START rn50_badnet_random_poison_ep10_s42
+[Mon Aug  3 12:04:00 CST 2026] weak BadNet 1500/500K stopped after epoch1 ASR=0.0013; replaced by p5pct config

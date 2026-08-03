@@ -1,0 +1,4 @@
+Using device: cuda:0 (NVIDIA GeForce RTX 4090)
+evaluated 256/1000 images
+CA=77.70%  ASR=0.00%  ASR(non-target)=0.00%
+saved metrics: /root/autodl-tmp/experiments/artifacts/outputs/E1_clean_purified_controls/invertune_clean_s42/evaluation/baseline_metrics.json

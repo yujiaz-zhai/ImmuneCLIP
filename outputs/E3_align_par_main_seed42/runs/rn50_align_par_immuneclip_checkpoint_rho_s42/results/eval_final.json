@@ -1,0 +1,8 @@
+{
+  "asr_top1": 0.014,
+  "asr_top5": 0.056,
+  "ca_top1": 0.464,
+  "ca_top5": 0.783,
+  "step": 80,
+  "tag": "final"
+}

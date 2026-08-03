@@ -1,0 +1,11 @@
+# ImmuneCLIP downstream | objective=contrastive ft=full ckpt=/root/autodl-tmp/experiments/artifacts/outputs/E1_clean_purified_controls/checkpoints/clean_par_rn50.pt
+# steps=300 eval_every=50 eval_steps=[5, 10, 20, 30, 50, 100, 200, 300] lr=1e-06 seed=42 downstream=cc3m num_classes=0 target=banana patch=ours_tnature/middle/16/opti_patches/badCLIP.jpg meta={'cc3m_csv': '/root/autodl-tmp/datasets/cc3m_badclip/GCC_Training500K/cc3m_natural_10K_no_banana_strict.csv'}
+{"step": 0, "train_loss": 0.0, "ca_top1": 0.543, "ca_top5": 0.827, "asr_top1": 0.001, "asr_top5": 0.004}
+{"step": 5, "train_loss": 0.049624115228652954, "ca_top1": 0.55, "ca_top5": 0.822, "asr_top1": 0.001, "asr_top5": 0.005}
+{"step": 10, "train_loss": 0.26683568954467773, "ca_top1": 0.535, "ca_top5": 0.827, "asr_top1": 0.0, "asr_top5": 0.005}
+{"step": 20, "train_loss": 0.0017808795673772693, "ca_top1": 0.525, "ca_top5": 0.817, "asr_top1": 0.001, "asr_top5": 0.005}
+{"step": 30, "train_loss": 0.3719322085380554, "ca_top1": 0.496, "ca_top5": 0.789, "asr_top1": 0.0, "asr_top5": 0.006}
+{"step": 50, "train_loss": 0.07642850279808044, "ca_top1": 0.488, "ca_top5": 0.78, "asr_top1": 0.0, "asr_top5": 0.005}
+{"step": 100, "train_loss": 0.001507063745521009, "ca_top1": 0.501, "ca_top5": 0.797, "asr_top1": 0.0, "asr_top5": 0.005}
+{"step": 200, "train_loss": 0.04903993383049965, "ca_top1": 0.496, "ca_top5": 0.799, "asr_top1": 0.0, "asr_top5": 0.004}
+{"step": 300, "train_loss": 0.034188270568847656, "ca_top1": 0.497, "ca_top5": 0.802, "asr_top1": 0.0, "asr_top5": 0.003}

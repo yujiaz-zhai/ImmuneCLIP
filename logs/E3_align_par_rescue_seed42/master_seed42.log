@@ -1,0 +1,27 @@
+[Mon Aug  3 17:26:00 CST 2026] E3 rescue seed=42 queued
+[Mon Aug  3 17:26:01 CST 2026] START train rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 17:53:53 CST 2026] DONE train rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 17:53:53 CST 2026] GPU busy (13537 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 17:55:54 CST 2026] GPU busy (13153 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 17:57:54 CST 2026] GPU busy (13257 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 17:59:54 CST 2026] GPU busy (13353 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:01:54 CST 2026] GPU busy (13353 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:03:54 CST 2026] GPU busy (13353 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:05:54 CST 2026] GPU busy (13353 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:07:54 CST 2026] GPU busy (14529 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:09:55 CST 2026] GPU busy (14529 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:11:55 CST 2026] GPU busy (14529 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:13:55 CST 2026] GPU busy (13573 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:15:55 CST 2026] GPU busy (13573 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:17:55 CST 2026] GPU busy (13587 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:19:55 CST 2026] GPU busy (13587 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:21:55 CST 2026] GPU busy (15152 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:23:55 CST 2026] GPU busy (14763 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:25:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:27:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:29:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:31:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:33:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:35:56 CST 2026] GPU busy (13475 MiB used); waiting before downstream rn50_align_par_immuneclip_traj_global_working_s42
+[Mon Aug  3 18:37:56 CST 2026] SKIP downstream rn50_align_par_immuneclip_traj_global_working_s42_rebound_full
+[Mon Aug  3 18:37:56 CST 2026] E3 rescue seed=42 complete

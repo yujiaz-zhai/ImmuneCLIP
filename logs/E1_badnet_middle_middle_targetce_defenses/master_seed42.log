@@ -1,0 +1,2 @@
+[Mon Aug  3 14:41:24 CST 2026] WAIT BadNet-targetCE attack checkpoint: /root/autodl-tmp/experiments/artifacts/logs/E1_badnet_attack_middle_middle_targetce/poison_logs/rn50_badnet_middle_p10pct_middle_targetce_l10_lr2e6_ep3_s42/checkpoints/epoch_3.pt
+[Mon Aug  3 14:41:24 CST 2026] ERROR BadNet-targetCE attack process stopped before epoch_3 checkpoint

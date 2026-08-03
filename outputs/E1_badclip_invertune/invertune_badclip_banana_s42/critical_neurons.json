@@ -1,0 +1,57 @@
+{
+  "layer_scores": {
+    "visual.layer1": 0.09798829257488251,
+    "visual.layer2": 0.11650727689266205,
+    "visual.layer3": 0.09877464175224304,
+    "visual.layer4": 0.9261651039123535
+  },
+  "threshold": 0.6657604674101183,
+  "critical_layers": [
+    "visual.layer4"
+  ],
+  "critical_spatial_neurons": {
+    "visual.layer4": 255
+  },
+  "total_spatial_neurons": {
+    "visual.layer4": 100352
+  },
+  "critical_channels": {
+    "visual.layer4": 142
+  },
+  "total_channels": {
+    "visual.layer4": 2048
+  },
+  "updated_parameters": [
+    "visual.layer4.0.conv1.weight",
+    "visual.layer4.0.bn1.weight",
+    "visual.layer4.0.bn1.bias",
+    "visual.layer4.0.conv2.weight",
+    "visual.layer4.0.bn2.weight",
+    "visual.layer4.0.bn2.bias",
+    "visual.layer4.0.conv3.weight",
+    "visual.layer4.0.bn3.weight",
+    "visual.layer4.0.bn3.bias",
+    "visual.layer4.0.downsample.0.weight",
+    "visual.layer4.0.downsample.1.weight",
+    "visual.layer4.0.downsample.1.bias",
+    "visual.layer4.1.conv1.weight",
+    "visual.layer4.1.bn1.weight",
+    "visual.layer4.1.bn1.bias",
+    "visual.layer4.1.conv2.weight",
+    "visual.layer4.1.bn2.weight",
+    "visual.layer4.1.bn2.bias",
+    "visual.layer4.1.conv3.weight",
+    "visual.layer4.1.bn3.weight",
+    "visual.layer4.1.bn3.bias",
+    "visual.layer4.2.conv1.weight",
+    "visual.layer4.2.bn1.weight",
+    "visual.layer4.2.bn1.bias",
+    "visual.layer4.2.conv2.weight",
+    "visual.layer4.2.bn2.weight",
+    "visual.layer4.2.bn2.bias",
+    "visual.layer4.2.conv3.weight",
+    "visual.layer4.2.bn3.weight",
+    "visual.layer4.2.bn3.bias"
+  ],
+  "inverted_trigger_ASR_before_tuning": 91.9921875
+}
