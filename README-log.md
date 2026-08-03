@@ -153,13 +153,14 @@ E2 interpretation: removing the oracle reactivation component suppresses rebound
 
 ### E3: ImmuneCLIP Main Table
 
-Current E3 status: the completed `Align + PAR + ImmuneCLIP` full-FT row is logged but **not yet达标**. It lowers immediate ASR but still rebounds to `A_post=0.408`; this row is kept as an honest failed/weak pilot, not as the final method result.
+Current E3 status: the stricter `checkpoint_rho` pilot is logged as an honest failed/weak pilot (`A_post=0.408`), while the repaired single-proxy `traj_global` rescue run is currently达标 on the main `Align + PAR + full-FT` row (`A_post=0.131`, final ASR `0.113`, no `T_0.5` revival).
 
 | Attack | Purifier | Method | Adapt | CA0 | A0 | A_post | Delta R | AURC | CA_T | rho_SP | GPU-h | Source |
 |---|---|---|---|---:|---:|---:|---:|---:|---:|---|---:|---|
 | Align | PAR | purifier only | full | 0.520 | 0.075 | 0.559 | 0.484 | 0.4922 | 0.497 | not logged | — | E1 Align/PAR full baseline reused as E3 purifier-only control |
 | Align | PAR | + compute-matched FT | full | 0.491 | 0.146 | 0.554 | 0.408 | 0.5006 | 0.500 | 0.0253 final `dir_raw_max` | 0.30 | `outputs/E3_align_par_main_seed42/runs/rn50_align_par_compute_matched_cleanft_s42/`, `outputs/E3_align_par_main_seed42/downstream/rn50_align_par_compute_matched_cleanft_s42_rebound_full/` |
 | Align | PAR | + ImmuneCLIP | full | 0.464 | 0.014 | 0.408 | 0.394 | 0.3640 | 0.502 | 0.5341 final `dir_raw_max` | 0.11 | `outputs/E3_align_par_main_seed42/runs/rn50_align_par_immuneclip_checkpoint_rho_s42/`, `outputs/E3_align_par_main_seed42/downstream/rn50_align_par_immuneclip_checkpoint_rho_s42_rebound_full/` |
+| Align | PAR | + ImmuneCLIP `traj_global` rescue | full | 0.439 | 0.000 | 0.131 | 0.131 | 0.1060 | 0.481 | 0.0671 final `dir_raw_max`; 0.0675 final `reach_raw_max` | not logged | `outputs/E3_align_par_rescue_seed42/runs/rn50_align_par_immuneclip_traj_global_working_s42/`, `outputs/E3_align_par_rescue_seed42/downstream/rn50_align_par_immuneclip_traj_global_working_s42_rebound_full/`; downstream log copied from server-1: `logs/E3_align_par_rescue_seed42/downstream_server1.log` |
 | Align | InverTune | purifier only | full | 0.569 | 0.000 | 0.828 | 0.828 | 0.7462 | 0.556 | not logged | — | E1 Align/InverTune full baseline reused as purifier-only control |
 | Align | InverTune | + compute-matched FT | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
 | Align | InverTune | + ImmuneCLIP | full | not run | not run | not run | not run | not run | not run | not run | not run | pending |
@@ -172,4 +173,4 @@ Current E3 status: the completed `Align + PAR + ImmuneCLIP` full-FT row is logge
 | Align | InverTune | purifier only | proj | 0.569 | 0.000 | 0.816 | 0.816 | 0.7383 | 0.562 | not logged | — | E1 Align/InverTune projection baseline reused as purifier-only control |
 | Align | InverTune | + ImmuneCLIP | proj | not run | not run | not run | not run | not run | not run | not run | not run | pending |
 
-E3 issue note: the current `checkpoint_rho` ImmuneCLIP pilot is not final. It reduces immediate ASR from `0.075` to `0.014`, but full benign FT rebounds to `0.408`. The next repair target is to rerun a working `traj_global` single-proxy variant inside artifacts and then re-evaluate 300-step rebound.
+E3 issue note: `checkpoint_rho` remains a failed pilot and should not be cited as the final method result. The repaired `traj_global` single-proxy variant reproduced the historical working behavior inside artifacts: immediate ASR `0.000`, max 300-step rebound ASR `0.131`, final ASR `0.113`, with no `0.5` revival. This row is the current E3 main-method candidate, but it should be described as the working single-proxy trajectory approximation rather than the stricter reachable-checkpoint implementation.
