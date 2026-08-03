@@ -116,3 +116,15 @@ Implementation notes:
 - `immuneclip/clip_eval.py` and `immuneclip/run_downstream.py` now accept explicit trigger metadata so BadNet/structured trigger rows are not accidentally evaluated with the BadCLIP image patch.
 - Current `--ft lora` in `run_downstream.py` is recorded as `lora_partial`; E1 `proj` rows should be described as projection/partial unless a strict projection-only mode is added and rerun.
 - BadNet+InverTune will use InverTune for inversion/tuning only; true BadNet ASR and rebound are evaluated by the unified downstream script with `patch_type=random`.
+
+## 2026-08-03 BadNet Attack Candidate Correction
+
+The initial ATK-3 BadNet-random candidate used `1500/500000` poisoned samples, inherited from the optimized BadCLIP patch setting. It was stopped after epoch 1 because the logged ASR was only `0.0013`, so it is recorded as a failed attack candidate and will not be used as the正文 BadNet row.
+
+Replacement launched on `autodl-48G-2`:
+
+| Candidate | Trigger | Poison count | Epochs | Warmup | Status | Logs |
+|---|---|---:|---:|---:|---|---|
+| BadNet-random-5pct | random 16x16 patch, random location, target banana | 25000 / 500000 | 5 | 1000 steps | running | `logs/E1_badnet_attack_strong/` |
+
+The BadNet defense queue now waits for `logs/E1_badnet_attack_strong/poison_logs/rn50_badnet_random_p5pct_ep5_s42/checkpoints/epoch_5.pt`.
