@@ -33,7 +33,16 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
 from clip_eval import eval_asr_ca, load_clip_model
-from config import BADCLIP_ROOT, LOG_ROOT, RESULT_ROOT
+from config import (
+    BADCLIP_ROOT,
+    LOG_ROOT,
+    PATCH_LOCATION,
+    PATCH_NAME,
+    PATCH_SIZE,
+    PATCH_TYPE,
+    RESULT_ROOT,
+    TARGET_LABEL,
+)
 
 
 IMAGENET_ROOT_DEFAULT = "/root/autodl-tmp/datasets/imagenet1k_badclip/validation"
@@ -283,6 +292,11 @@ def run_downstream(
     cc3m_root: str = CC3M_ROOT_DEFAULT,
     cc3m_csv: str = CC3M_CSV_DEFAULT,
     revival_threshold: float = 0.5,
+    target_label: str = TARGET_LABEL,
+    patch_type: str = PATCH_TYPE,
+    patch_location: str = PATCH_LOCATION,
+    patch_size: int = PATCH_SIZE,
+    patch_name: str = PATCH_NAME,
 ):
     set_seed(seed)
     os.makedirs(RESULT_ROOT, exist_ok=True)
@@ -339,7 +353,18 @@ def run_downstream(
         # （既慢又脆弱：RAID 偶发读失败会整条轨迹崩溃）。
         was_training = model.training
         model.eval()
-        mets = eval_asr_ca(None, device=device, subset=eval_subset, model=model, processor=processor)
+        mets = eval_asr_ca(
+            None,
+            device=device,
+            subset=eval_subset,
+            model=model,
+            processor=processor,
+            target_label=target_label,
+            patch_type=patch_type,
+            patch_location=patch_location,
+            patch_size=patch_size,
+            patch_name=patch_name,
+        )
         if was_training:
             model.train()
         return {"step": step_label, "train_loss": train_loss, **mets}
@@ -351,7 +376,9 @@ def run_downstream(
             f"# steps={steps} eval_every={eval_every} "
             f"eval_steps={sorted(scheduled_eval_steps) if scheduled_eval_steps else None} "
             f"lr={lr} seed={seed} "
-            f"downstream={downstream} num_classes={num_classes} meta={data_meta}\n"
+            f"downstream={downstream} num_classes={num_classes} "
+            f"target={target_label} patch={patch_type}/{patch_location}/{patch_size}/{patch_name} "
+            f"meta={data_meta}\n"
         )
         logf.write(json.dumps(rows[0]) + "\n")
         logf.flush()
@@ -447,6 +474,11 @@ def run_downstream(
         "ca_final": rows[-1]["ca_top1"],
         "ca_min": min(ca_vals),
         "eval_steps": [r["step"] for r in rows],
+        "target_label": target_label,
+        "patch_type": patch_type,
+        "patch_location": patch_location,
+        "patch_size": patch_size,
+        "patch_name": patch_name,
         **data_meta,
     }
     summary_path = traj_path.replace(".csv", "_summary.json")
@@ -496,6 +528,11 @@ def main():
         default=0.5,
         help="First step with ASR@1 >= threshold; null if never reached.",
     )
+    parser.add_argument("--target_label", type=str, default=TARGET_LABEL)
+    parser.add_argument("--patch_type", type=str, default=PATCH_TYPE)
+    parser.add_argument("--patch_location", type=str, default=PATCH_LOCATION)
+    parser.add_argument("--patch_size", type=int, default=PATCH_SIZE)
+    parser.add_argument("--patch_name", type=str, default=PATCH_NAME)
     args = parser.parse_args()
     run_downstream(**vars(args))
 

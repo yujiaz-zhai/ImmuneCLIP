@@ -59,6 +59,11 @@ def _build_eval_options(
     add_backdoor: bool = False,
     asr: bool = False,
     subset: Optional[int] = IMAGENET_EVAL_SUBSET,
+    target_label: str = TARGET_LABEL,
+    patch_type: str = PATCH_TYPE,
+    patch_location: str = PATCH_LOCATION,
+    patch_size: int = PATCH_SIZE,
+    patch_name: Optional[str] = PATCH_NAME,
 ):
     from src.data import get_eval_test_dataloader
 
@@ -68,11 +73,15 @@ def _build_eval_options(
         eval_test_data_csv=None,
         add_backdoor=add_backdoor,
         asr=asr,
-        label=TARGET_LABEL,
-        patch_type=PATCH_TYPE,
-        patch_location=PATCH_LOCATION,
-        patch_name=os.path.join(BADCLIP_ROOT, PATCH_NAME),
-        patch_size=PATCH_SIZE,
+        label=target_label,
+        patch_type=patch_type,
+        patch_location=patch_location,
+        patch_name=(
+            os.path.join(BADCLIP_ROOT, patch_name)
+            if patch_name and not os.path.isabs(patch_name)
+            else patch_name
+        ),
+        patch_size=patch_size,
         scale=None,
         blended_alpha=None,
         tigger_pth=None,
@@ -95,11 +104,26 @@ def eval_zeroshot(
     add_backdoor: bool = False,
     asr: bool = False,
     subset: Optional[int] = IMAGENET_EVAL_SUBSET,
+    target_label: str = TARGET_LABEL,
+    patch_type: str = PATCH_TYPE,
+    patch_location: str = PATCH_LOCATION,
+    patch_size: int = PATCH_SIZE,
+    patch_name: Optional[str] = PATCH_NAME,
 ) -> Dict[str, float]:
     """返回 zeroshot_top1/3/5/10。"""
     from src.data import get_eval_test_dataloader
 
-    options = _build_eval_options(device, add_backdoor, asr, subset)
+    options = _build_eval_options(
+        device,
+        add_backdoor,
+        asr,
+        subset,
+        target_label=target_label,
+        patch_type=patch_type,
+        patch_location=patch_location,
+        patch_size=patch_size,
+        patch_name=patch_name,
+    )
     test_loader = get_eval_test_dataloader(options, processor)
     if subset is not None and subset < len(test_loader.dataset):
         # 均匀跨类采样（labels.csv 按类排序，取前 N 会只覆盖前 N/50 个类，
@@ -121,9 +145,9 @@ def eval_zeroshot(
     classes, templates = config["classes"], config["templates"]
     target_index = None
     if asr:
-        matches = [i for i, c in enumerate(classes) if c == TARGET_LABEL or TARGET_LABEL in c]
+        matches = [i for i, c in enumerate(classes) if c == target_label or target_label in c]
         if not matches:
-            raise ValueError(f"Target label {TARGET_LABEL!r} not found in ImageNet classes")
+            raise ValueError(f"Target label {target_label!r} not found in ImageNet classes")
         target_index = int(matches[0])
 
     text_embeddings = []
@@ -166,11 +190,40 @@ def eval_asr_ca(
     subset: Optional[int] = IMAGENET_EVAL_SUBSET,
     model=None,
     processor=None,
+    target_label: str = TARGET_LABEL,
+    patch_type: str = PATCH_TYPE,
+    patch_location: str = PATCH_LOCATION,
+    patch_size: int = PATCH_SIZE,
+    patch_name: Optional[str] = PATCH_NAME,
 ) -> Dict[str, float]:
     if model is None:
         model, processor = load_clip_model(checkpoint, device)
-    ca = eval_zeroshot(model, processor, device, add_backdoor=False, asr=False, subset=subset)
-    asr = eval_zeroshot(model, processor, device, add_backdoor=True, asr=True, subset=subset)
+    ca = eval_zeroshot(
+        model,
+        processor,
+        device,
+        add_backdoor=False,
+        asr=False,
+        subset=subset,
+        target_label=target_label,
+        patch_type=patch_type,
+        patch_location=patch_location,
+        patch_size=patch_size,
+        patch_name=patch_name,
+    )
+    asr = eval_zeroshot(
+        model,
+        processor,
+        device,
+        add_backdoor=True,
+        asr=True,
+        subset=subset,
+        target_label=target_label,
+        patch_type=patch_type,
+        patch_location=patch_location,
+        patch_size=patch_size,
+        patch_name=patch_name,
+    )
     return {
         "ca_top1": ca["zeroshot_top1"],
         "ca_top5": ca["zeroshot_top5"],
