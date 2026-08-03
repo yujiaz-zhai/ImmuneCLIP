@@ -24,7 +24,7 @@ mkdir -p "$OUT_ROOT" "$LOG_ROOT" "$CKPT_ROOT"
 wait_for_attack() {
   echo "[$(date)] WAIT BadNet-random-5pct attack checkpoint: $ATTACK_CKPT" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
   while [[ ! -f "$ATTACK_CKPT" ]]; do
-    if ! pgrep -f "src/main.py --name rn50_badnet_random_p5pct_ep5_s42" >/dev/null; then
+    if ! ps -eo cmd | grep -E "bash scripts/run_E1_badnet_attack_strong_seed42.sh|src/main.py --name rn50_badnet_random_p5pct_ep5_s42" | grep -v grep >/dev/null; then
       echo "[$(date)] ERROR BadNet-random-5pct attack process stopped before epoch_5 checkpoint" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
       exit 2
     fi
