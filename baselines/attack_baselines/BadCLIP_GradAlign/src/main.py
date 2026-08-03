@@ -1,0 +1,473 @@
+import os
+os.environ["WANDB_API_KEY"] = ""
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3" 
+import copy
+import sys
+current_directory = os.getcwd()
+sys.path.insert(1,current_directory)
+import time
+import wandb
+import torch
+import logging
+import warnings
+import numpy as np
+import torch.optim as optim
+import torch.distributed as dist
+import torch.multiprocessing as mp
+import torch.backends.cudnn as cudnn
+from torch.cuda.amp import GradScaler
+from torch.nn.parallel import DistributedDataParallel as DDP
+
+from pkgs.openai.clip import load as load_model
+
+from src.ewc import estimate_fisher
+from src.sam import SAM
+from src.sbl import prepare_sbl_stage_csvs
+from src.train import train
+from src.evaluate import evaluate, Finetune
+from src.data import load as load_data
+from src.data import get_clean_train_dataloader, calculate_scores
+from src.parser import parse_args
+from src.scheduler import cosine_scheduler
+from src.logger import get_logger, set_logger
+
+mp.set_start_method("spawn", force = True)
+warnings.filterwarnings("ignore")
+
+
+def gathered_elements_to_list(gather_elements):
+    output = []
+    for element in gather_elements:
+        output = output + list(element)
+    return output
+
+def progressive_removal(options, model, processor, data, epoch):
+
+    path = calculate_scores(options, model, data["train"], epoch)
+    gather_path = [None for _ in range(options.num_devices)]
+    if options.distributed:
+        dist.all_gather_object(gather_path, path)
+    
+    if not options.master and options.distributed:
+        logging.info(f'Device inside barrier 1 {options.device}')
+        torch.distributed.barrier()
+        logging.info(f'Device outside barrier 1 {options.device}')
+
+    data["train"] = get_clean_train_dataloader(options, processor, path)
+
+    options.train_data = path
+
+    if options.master and options.distributed:
+        logging.info(f'Device inside barrier 2 {options.device}')
+        torch.distributed.barrier()
+        logging.info(f'Device outside barrier 2 {options.device}')
+
+    return options, data
+
+
+def build_optimizer_and_scheduler(model, phase_options, num_batches, phase_epochs, phase_lr, warmup_steps):
+    weight_decay_parameters = []
+    no_weight_decay_parameters = []
+
+    for name, parameter in model.named_parameters():
+        if all(key not in name for key in ["bn", "ln", "bias", "logit_scale"]) and parameter.requires_grad:
+            weight_decay_parameters.append(parameter)
+
+        if any(key in name for key in ["bn", "ln", "bias", "logit_scale"]) and parameter.requires_grad:
+            no_weight_decay_parameters.append(parameter)
+
+    optimizer_groups = [
+        {"params": no_weight_decay_parameters, "weight_decay": 0},
+        {"params": weight_decay_parameters, "weight_decay": phase_options.weight_decay},
+    ]
+
+    if phase_options.sam:
+        optimizer = SAM(
+            optimizer_groups,
+            base_optimizer=optim.AdamW,
+            rho=phase_options.sam_rho,
+            adaptive=phase_options.sam_adaptive,
+            lr=phase_lr,
+            betas=(phase_options.beta1, phase_options.beta2),
+            eps=phase_options.eps,
+        )
+        scheduler = cosine_scheduler(
+            optimizer.base_optimizer,
+            phase_lr,
+            warmup_steps,
+            num_batches * phase_epochs,
+        )
+    else:
+        optimizer = optim.AdamW(
+            optimizer_groups,
+            lr=phase_lr,
+            betas=(phase_options.beta1, phase_options.beta2),
+            eps=phase_options.eps,
+        )
+        scheduler = cosine_scheduler(optimizer, phase_lr, warmup_steps, num_batches * phase_epochs)
+
+    return optimizer, scheduler
+
+
+def save_phase_checkpoint(model, optimizer, checkpoints_dir_path, phase_name, epoch, save_final=False):
+    checkpoint = {
+        "epoch": epoch,
+        "phase": phase_name,
+        "state_dict": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+    }
+    torch.save(checkpoint, os.path.join(checkpoints_dir_path, f"{phase_name}_epoch_{epoch}.pt"))
+    if save_final:
+        torch.save(checkpoint, os.path.join(checkpoints_dir_path, "epoch.pt"))
+
+
+def prepare_backdoor_target_embeddings(model, processor, options):
+    if not getattr(options, "backdoor_target_loss", False):
+        return None, None
+    if getattr(options, "backdoor_target_mode", "pair") not in ["zeroshot", "dynamic_zeroshot"]:
+        return None, None
+    if options.eval_test_data_dir is None:
+        raise ValueError("backdoor_target_mode=zeroshot requires --eval_test_data_dir")
+
+    classes_path = os.path.join(options.eval_test_data_dir, "classes.py")
+    config = eval(open(classes_path, "r").read())
+    classes, templates = config["classes"], config["templates"]
+    matches = [i for i, cls_name in enumerate(classes) if cls_name == options.label]
+    if not matches:
+        matches = [i for i, cls_name in enumerate(classes) if options.label in cls_name]
+    if not matches:
+        raise ValueError(f"Could not find target label {options.label!r} in {classes_path}")
+    target_index = int(matches[0])
+
+    umodel = model.module if options.distributed else model
+    was_training = umodel.training
+    umodel.eval()
+    text_embeddings = []
+    with torch.no_grad():
+        for class_name in classes:
+            if options.patch_type is not None and "vqa" in options.patch_type:
+                texts = ["remember " + template(class_name) for template in templates]
+            else:
+                texts = [template(class_name) for template in templates]
+            text_tokens = processor.process_text(texts)
+            text_input_ids = text_tokens["input_ids"].to(options.device)
+            text_attention_mask = text_tokens["attention_mask"].to(options.device)
+            text_embedding = umodel.get_text_features(
+                input_ids=text_input_ids,
+                attention_mask=text_attention_mask,
+            )
+            text_embedding = text_embedding / text_embedding.norm(dim=-1, keepdim=True)
+            text_embedding = text_embedding.mean(dim=0)
+            text_embedding = text_embedding / text_embedding.norm()
+            text_embeddings.append(text_embedding)
+    if was_training:
+        umodel.train()
+
+    text_embeddings = torch.stack(text_embeddings, dim=1).detach()
+    options.backdoor_target_text_embeddings = text_embeddings
+    options.backdoor_target_index = target_index
+    if options.master:
+        logging.info(
+            f"Prepared zero-shot backdoor target embeddings: "
+            f"label={classes[target_index]}, index={target_index}, shape={tuple(text_embeddings.shape)}"
+        )
+    return text_embeddings, target_index
+
+
+def attach_backdoor_target_embeddings(phase_options, text_embeddings, target_index):
+    if phase_options is None or text_embeddings is None or target_index is None:
+        return
+    phase_options.backdoor_target_text_embeddings = text_embeddings
+    phase_options.backdoor_target_index = target_index
+
+
+def run_training_phase(model, processor, data, optimizer, scheduler, phase_options, checkpoints_dir_path, phase_name, phase_epochs, scaler, regularizer=None):
+    best_loss = np.inf
+    for epoch in range(1, phase_epochs + 1):
+        if phase_options.master:
+            logging.info(f"Starting {phase_name} Epoch {epoch}")
+
+        start = time.time()
+        train(epoch, model, data, optimizer, scheduler, scaler, phase_options, regularizer=regularizer)
+        end = time.time()
+
+        if phase_options.master:
+            logging.info(f"Finished {phase_name} Epoch {epoch}, Time Taken: {end - start:.3f}")
+
+        metrics = evaluate(epoch, model, processor, data, phase_options)
+        if phase_options.master:
+            save_phase_checkpoint(
+                model,
+                optimizer,
+                checkpoints_dir_path,
+                phase_name=phase_name,
+                epoch=epoch,
+                save_final=(phase_options.complete_finetune and phase_options.save_final and epoch == phase_epochs),
+            )
+            if "loss" in metrics and metrics["loss"] < best_loss:
+                best_loss = metrics["loss"]
+                checkpoint = {
+                    "epoch": epoch,
+                    "phase": phase_name,
+                    "state_dict": model.state_dict(),
+                    "optimizer": optimizer.state_dict(),
+                }
+                torch.save(checkpoint, os.path.join(checkpoints_dir_path, f"{phase_name}_epoch.best.pt"))
+
+
+def worker(rank, options, logger):
+    options.rank = rank
+    options.master = rank == 0
+    
+    set_logger(rank = rank, logger = logger, distributed = options.distributed)
+    if(options.device == "cuda"):
+        options.device += ":" + str(options.device_ids[options.rank] if options.distributed else options.device_id)
+
+    logging.info(f"Using {options.device} device")
+
+    if(options.master):
+        logging.info("Params:")
+        with open(os.path.join(options.log_dir_path, "params.txt"), "w") as file:
+            for key in sorted(vars(options)):
+                value = getattr(options, key)
+                logging.info(f"{key}: {value}")
+                file.write(f"{key}: {value}\n")
+
+    if(options.distributed):
+        dist.init_process_group(backend = options.distributed_backend, init_method = options.distributed_init_method, world_size = options.num_devices, rank = options.rank)
+    
+    options.batch_size = options.batch_size // options.num_devices
+
+    model, processor = load_model(name = options.model_name, pretrained = options.pretrained)
+
+    if(options.device == "cpu"):
+        model.float()
+    else:
+        torch.cuda.set_device(options.device_ids[options.rank] if options.distributed else options.device_id)
+        model.to(options.device)
+        if(options.distributed):
+            model = DDP(model, device_ids = [options.device_ids[options.rank]])
+        
+    phase0_options = options
+    data = None
+    phase1_options = None
+    phase1_data = None
+    if options.sbl:
+        if not options.sam:
+            raise ValueError("SBL full training requires --sam so that Step 0 and Step 1 both use SAM.")
+        if options.sec_epochs <= 0:
+            raise ValueError("SBL full training requires --sec_epochs > 0.")
+        if options.sec_lr is None:
+            raise ValueError("SBL full training requires --sec_lr.")
+
+        split_info = prepare_sbl_stage_csvs(options)
+        phase0_options = copy.deepcopy(options)
+        phase0_options.train_data = split_info["step0_train_data"]
+        data = load_data(phase0_options, processor)
+
+        phase1_options = copy.deepcopy(options)
+        phase1_options.train_data = split_info["step1_train_data"]
+        phase1_options.lr = options.sec_lr
+        phase1_options.num_warmup_steps = options.sec_num_warmup_steps
+        if not getattr(options, "sbl_step1_backdoor_losses", False):
+            phase1_options.backdoor_target_loss = False
+            phase1_options.gradient_align = False
+            if options.master:
+                logging.info("SBL Step 1 backdoor target/alignment losses disabled; using clean+EWC only.")
+        phase1_data = load_data(phase1_options, processor)
+    else:
+        data = load_data(options, processor)
+
+    start_epoch = 0
+    optimizer = None
+    if(options.checkpoint is not None):
+        if(os.path.isfile(options.checkpoint)):
+            checkpoint  = torch.load(options.checkpoint, map_location = options.device)
+            start_epoch = 0 if options.complete_finetune or 'epoch' not in checkpoint else checkpoint['epoch']
+            state_dict  = checkpoint["state_dict"]
+            if(not options.distributed and next(iter(state_dict.items()))[0].startswith("module")):
+                state_dict = {key[len("module."):]: value for key, value in state_dict.items()}
+            # hack to load a non-distributed checkpoint for distributed training
+            if (options.distributed and not next(iter(state_dict.items()))[0].startswith("module")):
+                state_dict = {"module."+key: value for key, value in state_dict.items()}
+            if(options.checkpoint_finetune):
+                finetuned_checkpoint = torch.load(options.checkpoint_finetune, map_location = options.device)
+                finetuned_state_dict = finetuned_checkpoint["state_dict"]
+                for key in state_dict:
+                    if 'visual' in key:
+                        ft_key = name.replace("module.", "model.") if "module" in key else f'model.{key}'
+                        state_dict[key] = finetuned_state_dict[ft_key]
+                print('Loaded Visual Backbone from Finetuned Model')
+            model.load_state_dict(state_dict)
+            logging.info(f"Loaded checkpoint '{options.checkpoint}' (start epoch {checkpoint['epoch']})")
+        else:
+            logging.info(f"No checkpoint found at {options.checkpoint}")
+
+    target_text_embeddings, target_index = prepare_backdoor_target_embeddings(model, processor, options)
+    attach_backdoor_target_embeddings(phase0_options, target_text_embeddings, target_index)
+    attach_backdoor_target_embeddings(phase1_options, target_text_embeddings, target_index)
+
+    cudnn.benchmark = True
+    cudnn.deterministic = False
+
+    if(options.wandb and options.master):
+        logging.debug("Starting wandb")
+        wandb.init(project = "clip-defense", notes = options.notes, tags = [], config = vars(options), entity = 'mint-adobe')
+        wandb.run.name = options.name
+        wandb.save(os.path.join(options.log_dir_path, "params.txt"))
+
+    evaluate(start_epoch, model, processor, data, phase0_options)
+
+    if(data["train"] is not None):
+        options.checkpoints_dir_path = os.path.join(options.log_dir_path, "checkpoints")
+        os.makedirs(options.checkpoints_dir_path, exist_ok = True)
+
+        if options.sbl:
+            optimizer, scheduler = build_optimizer_and_scheduler(
+                model,
+                phase0_options,
+                data["train"].num_batches,
+                phase0_options.epochs,
+                phase0_options.lr,
+                phase0_options.num_warmup_steps,
+            )
+            if options.checkpoint is not None and os.path.isfile(options.checkpoint) and not options.complete_finetune:
+                optimizer.load_state_dict(checkpoint["optimizer"])
+
+            phase0_scaler = None if phase0_options.sam else GradScaler()
+            run_training_phase(
+                model,
+                processor,
+                data,
+                optimizer,
+                scheduler,
+                phase0_options,
+                options.checkpoints_dir_path,
+                phase_name="step0",
+                phase_epochs=phase0_options.epochs,
+                scaler=phase0_scaler,
+            )
+
+            logging.info("Estimating Fisher on SBL Step 0 mixed data")
+            regularizer = estimate_fisher(
+                model,
+                data["train"],
+                phase0_options,
+                max_batches=options.ewc_max_batches,
+            )
+
+            phase1_optimizer, phase1_scheduler = build_optimizer_and_scheduler(
+                model,
+                phase1_options,
+                phase1_data["train"].num_batches,
+                phase1_options.sec_epochs,
+                phase1_options.sec_lr,
+                phase1_options.num_warmup_steps,
+            )
+            phase1_scaler = None if phase1_options.sam else GradScaler()
+            run_training_phase(
+                model,
+                processor,
+                phase1_data,
+                phase1_optimizer,
+                phase1_scheduler,
+                phase1_options,
+                options.checkpoints_dir_path,
+                phase_name="step1",
+                phase_epochs=phase1_options.sec_epochs,
+                scaler=phase1_scaler,
+                regularizer=regularizer,
+            )
+        else:
+            optimizer, scheduler = build_optimizer_and_scheduler(
+                model,
+                options,
+                data["train"].num_batches,
+                options.epochs,
+                options.lr,
+                options.num_warmup_steps,
+            )
+            if options.checkpoint is not None and os.path.isfile(options.checkpoint) and not options.complete_finetune:
+                optimizer.load_state_dict(checkpoint["optimizer"])
+
+            scaler = None if options.sam else GradScaler()
+
+            if(options.progressive):
+                options.progressive_epochs = list(map(int, options.progressive_epochs))
+                if (start_epoch in options.progressive_epochs):
+                    options, data = progressive_removal(options, model, processor, data, start_epoch)
+
+            best_loss = np.inf
+            for epoch in range(start_epoch + 1, options.epochs + 1):
+                if(options.master): 
+                    logging.info(f"Starting Epoch {epoch}")
+
+                start = time.time()
+                train(epoch, model, data, optimizer, scheduler, scaler, options)
+                end = time.time()
+
+                if(options.master): 
+                    logging.info(f"Finished Epoch {epoch}, Time Taken: {end - start:.3f}")
+
+                metrics = evaluate(epoch, model, processor, data, options)
+
+                if(options.master):
+                    checkpoint = {"epoch": epoch, "name": options.name, "state_dict": model.state_dict(), "optimizer": optimizer.state_dict()}
+                    if(options.complete_finetune and options.save_final):
+                        torch.save(checkpoint, os.path.join(options.checkpoints_dir_path, f"epoch.pt"))
+                    else:
+                        torch.save(checkpoint, os.path.join(options.checkpoints_dir_path, f"epoch_{epoch}.pt"))
+                    if("loss" in metrics):
+                        if(metrics["loss"] < best_loss):
+                            best_loss = metrics["loss"]
+                            torch.save(checkpoint, os.path.join(options.checkpoints_dir_path, f"epoch.best.pt"))
+                
+                if(options.progressive):
+                    if epoch in options.progressive_epochs:
+                        options, data = progressive_removal(options, model, processor, data, epoch)
+                
+                    if epoch == options.stop_epoch:
+                        return
+
+    if(options.distributed):
+        dist.destroy_process_group()
+
+    if(options.wandb and options.master):
+        wandb.finish()
+
+if(__name__ == "__main__"):    
+    options = parse_args()
+
+    options.log_dir_path = os.path.join(options.logs, options.name)
+    options.log_file_path = os.path.join(options.log_dir_path, "output.log")
+    
+    os.makedirs(options.log_dir_path, exist_ok = True)
+    logger, listener = get_logger(options.log_file_path)
+
+    listener.start()
+
+    ngpus = torch.cuda.device_count()
+    if(ngpus == 0 or options.device == "cpu"):
+        options.device = "cpu"
+        options.num_devices = 1
+        options.distributed = False
+        worker(0, options, logger)
+    else:
+        if(ngpus == 1 or not options.distributed):
+            options.device = "cuda"
+            options.num_devices = 1
+            options.distributed = False
+            worker(0, options, logger)
+        else:
+            options.device = "cuda"
+            if(options.device_ids is None):
+                options.device_ids = list(range(ngpus))
+                options.num_devices = ngpus
+            else:
+                options.device_ids = list(map(int, options.device_ids[0].split()))
+                options.num_devices = len(options.device_ids)
+            options.distributed = True
+            os.environ["NCCL_P2P_DISABLE"] = "1"
+            mp.spawn(worker, nprocs = options.num_devices, args = (options, logger))
+    
+    listener.stop()

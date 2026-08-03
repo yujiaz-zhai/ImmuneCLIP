@@ -1,0 +1,431 @@
+import time
+import wandb
+import torch
+import logging
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.cuda.amp import autocast
+from contextlib import nullcontext
+from PIL import Image
+from torchvision.transforms.functional import to_tensor
+
+from src.clip_loss import compute_batch_loss
+from src.sam import disable_running_stats, enable_running_stats
+
+
+def get_normalized_trigger_patch(options, device, dtype):
+    patch = getattr(options, "backdoor_trigger_tensor", None)
+    patch_size = int(getattr(options, "patch_size", 16) or 16)
+    if patch is None:
+        patch_image = Image.open(options.patch_name).convert("RGB").resize((patch_size, patch_size))
+        patch = to_tensor(patch_image)
+        mean = patch.new_tensor([0.48145466, 0.4578275, 0.40821073]).view(3, 1, 1)
+        std = patch.new_tensor([0.26862954, 0.26130258, 0.27577711]).view(3, 1, 1)
+        patch = (patch - mean) / std
+        options.backdoor_trigger_tensor = patch
+    return patch.to(device=device, dtype=dtype, non_blocking=True)
+
+
+def apply_tensor_trigger(pixel_values, options):
+    triggered = pixel_values.clone()
+    patch = get_normalized_trigger_patch(options, pixel_values.device, pixel_values.dtype)
+    patch_h, patch_w = patch.shape[-2:]
+    image_h, image_w = triggered.shape[-2:]
+
+    if getattr(options, "patch_location", "middle") == "middle":
+        top = int(image_h / 2 - patch_h / 2)
+        left = int(image_w / 2 - patch_w / 2)
+    else:
+        # The current Week2 attack uses middle placement; fall back to the same
+        # deterministic placement for target-loss consistency.
+        top = int(image_h / 2 - patch_h / 2)
+        left = int(image_w / 2 - patch_w / 2)
+
+    triggered[:, :, top:top + patch_h, left:left + patch_w] = patch.unsqueeze(0)
+    return triggered
+
+def compute_gradient_alignment_loss(model, batch, criterion, options):
+    """
+    Compute gradient alignment between the clean CLIP objective and a backdoor
+    objective. The default backdoor objective uses poisoned samples in the
+    current batch; dynamic_target uses triggered clean images so every sampled
+    batch can contribute when called.
+    """
+    align_mode = getattr(options, "gradient_align_mode", "poison")
+    is_backdoor = batch["is_backdoor"]  # CPU tensor
+    backdoor_mask = is_backdoor.bool()
+    clean_mask = ~backdoor_mask
+
+    if align_mode == "poison" and (backdoor_mask.sum().item() == 0 or clean_mask.sum().item() == 0):
+        return None, 0.0
+    
+    input_ids = batch["input_ids"].to(options.device, non_blocking=True)
+    attention_mask = batch["attention_mask"].to(options.device, non_blocking=True)
+    pixel_values = batch["pixel_values"].to(options.device, non_blocking=True)
+    clean_mask = clean_mask.to(options.device)
+    backdoor_mask = backdoor_mask.to(options.device)
+
+    if input_ids.is_cuda and hasattr(torch.backends.cuda, "sdp_kernel"):
+        sdp_context = torch.backends.cuda.sdp_kernel(
+            enable_flash=False,
+            enable_math=True,
+            enable_mem_efficient=False,
+        )
+    else:
+        sdp_context = nullcontext()
+
+    amp_context = autocast(enabled=False) if input_ids.is_cuda else nullcontext()
+
+    with amp_context, sdp_context:
+        outputs = model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            pixel_values=pixel_values,
+        )
+    umodel = model.module if options.distributed else model
+
+    logits_per_image = umodel.logit_scale.exp() * outputs.image_embeds @ outputs.text_embeds.t()
+    logits_per_text = logits_per_image.t()
+    target = torch.arange(len(logits_per_image), device=options.device).long()
+
+    if align_mode == "dynamic_target":
+        clean_loss = (
+            F.cross_entropy(logits_per_image, target) +
+            F.cross_entropy(logits_per_text, target)
+        ) / 2
+
+        text_embeddings = getattr(options, "backdoor_target_text_embeddings", None)
+        target_index = getattr(options, "backdoor_target_index", None)
+        if text_embeddings is None or target_index is None:
+            raise ValueError("gradient_align_mode=dynamic_target requires cached target text embeddings")
+
+        target_pixel_values = apply_tensor_trigger(pixel_values, options)
+        image_embeds = umodel.get_image_features(target_pixel_values)
+        image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+        text_embeddings = text_embeddings.to(
+            device=image_embeds.device,
+            dtype=image_embeds.dtype,
+            non_blocking=True,
+        )
+        target_logits = umodel.logit_scale.exp() * image_embeds @ text_embeddings
+        target_labels = torch.full(
+            (len(image_embeds),),
+            int(target_index),
+            device=options.device,
+            dtype=torch.long,
+        )
+        backdoor_loss = F.cross_entropy(target_logits, target_labels)
+    else:
+        image_losses = F.cross_entropy(logits_per_image, target, reduction="none")
+        text_losses = F.cross_entropy(logits_per_text, target, reduction="none")
+        clean_loss = (image_losses[clean_mask].mean() + text_losses[clean_mask].mean()) / 2
+        backdoor_loss = (image_losses[backdoor_mask].mean() + text_losses[backdoor_mask].mean()) / 2
+
+    if not torch.isfinite(clean_loss) or not torch.isfinite(backdoor_loss):
+        return None, 0.0
+    
+    align_keywords = getattr(options, "align_param_keywords", None)
+    if align_keywords is None:
+        align_keywords = ["visual.layer4", "visual.attnpool"]
+
+    visual_params = []
+    for name, param in model.named_parameters():
+        if any(keyword in name for keyword in align_keywords) and param.requires_grad:
+            visual_params.append(param)
+    
+    if len(visual_params) == 0:
+        raise ValueError(f"No alignment parameters found for keywords: {align_keywords}")
+    
+    clean_grads = torch.autograd.grad(
+        clean_loss, 
+        visual_params, 
+        create_graph=True, 
+        retain_graph=True,
+        allow_unused=True
+    )
+    
+    backdoor_grads = torch.autograd.grad(
+        backdoor_loss, 
+        visual_params, 
+        create_graph=True, 
+        retain_graph=True,
+        allow_unused=True
+    )
+    
+    dot = clean_loss.new_tensor(0.0)
+    clean_norm_sq = clean_loss.new_tensor(0.0)
+    backdoor_norm_sq = clean_loss.new_tensor(0.0)
+    used_grads = 0
+    for clean_grad, backdoor_grad in zip(clean_grads, backdoor_grads):
+        if clean_grad is None or backdoor_grad is None:
+            continue
+        dot = dot + (clean_grad * backdoor_grad).sum()
+        clean_norm_sq = clean_norm_sq + clean_grad.square().sum()
+        backdoor_norm_sq = backdoor_norm_sq + backdoor_grad.square().sum()
+        used_grads += 1
+
+    if used_grads == 0:
+        return None, 0.0
+
+    denom = clean_norm_sq.sqrt() * backdoor_norm_sq.sqrt()
+    if not torch.isfinite(denom) or denom.item() < 1e-12:
+        return None, 0.0
+
+    cos_sim = dot / (denom + 1e-12)
+    if not torch.isfinite(cos_sim):
+        return None, 0.0
+    cos_sim = cos_sim.clamp(min=-1.0, max=1.0)
+    
+    if getattr(options, "gradient_align_hinge", False):
+        margin = getattr(options, "gradient_align_margin", 0.0)
+        alignment_loss = F.relu(cos_sim.new_tensor(margin) - cos_sim)
+    else:
+        alignment_loss = -cos_sim
+    
+    return alignment_loss, cos_sim.item()
+
+
+def compute_backdoor_target_loss(model, batch, criterion, options):
+    """
+    Explicitly up-weight the poisoned-pair objective.
+
+    The standard mixed CLIP loss averages over the whole batch, so with a
+    0.3% poison rate the backdoor rows are heavily diluted. Two modes are
+    supported:
+      - pair: average only poisoned rows/columns in the batch InfoNCE loss.
+      - zeroshot: classify poisoned training images as the target class.
+      - dynamic_zeroshot: add the trigger to clean batch images on the fly and
+        classify those triggered images as the target class.
+    """
+    is_backdoor = batch["is_backdoor"]
+    backdoor_mask = is_backdoor.bool()
+    target_mode = getattr(options, "backdoor_target_mode", "pair")
+    if target_mode != "dynamic_zeroshot" and backdoor_mask.sum().item() == 0:
+        return None
+
+    input_ids = batch["input_ids"].to(options.device, non_blocking=True)
+    attention_mask = batch["attention_mask"].to(options.device, non_blocking=True)
+    pixel_values = batch["pixel_values"].to(options.device, non_blocking=True)
+    backdoor_mask = backdoor_mask.to(options.device)
+
+    if target_mode in ["zeroshot", "dynamic_zeroshot"]:
+        text_embeddings = getattr(options, "backdoor_target_text_embeddings", None)
+        target_index = getattr(options, "backdoor_target_index", None)
+        if text_embeddings is None or target_index is None:
+            raise ValueError(f"backdoor_target_mode={target_mode} requires cached target text embeddings")
+
+        umodel = model.module if options.distributed else model
+        if target_mode == "dynamic_zeroshot":
+            clean_mask = ~backdoor_mask
+            if clean_mask.sum().item() == 0:
+                return None
+            target_pixel_values = apply_tensor_trigger(pixel_values[clean_mask], options)
+        else:
+            target_pixel_values = pixel_values[backdoor_mask]
+
+        image_embeds = umodel.get_image_features(target_pixel_values)
+        image_embeds = image_embeds / image_embeds.norm(dim=-1, keepdim=True)
+        text_embeddings = text_embeddings.to(
+            device=image_embeds.device,
+            dtype=image_embeds.dtype,
+            non_blocking=True,
+        )
+        logits = umodel.logit_scale.exp() * image_embeds @ text_embeddings
+        target = torch.full(
+            (len(image_embeds),),
+            int(target_index),
+            device=options.device,
+            dtype=torch.long,
+        )
+        backdoor_target_loss = F.cross_entropy(logits, target)
+        if not torch.isfinite(backdoor_target_loss):
+            return None
+        return backdoor_target_loss
+
+    outputs = model(
+        input_ids=input_ids,
+        attention_mask=attention_mask,
+        pixel_values=pixel_values,
+    )
+    umodel = model.module if options.distributed else model
+
+    logits_per_image = umodel.logit_scale.exp() * outputs.image_embeds @ outputs.text_embeds.t()
+    logits_per_text = logits_per_image.t()
+    target = torch.arange(len(logits_per_image), device=options.device).long()
+
+    image_losses = F.cross_entropy(logits_per_image, target, reduction="none")
+    text_losses = F.cross_entropy(logits_per_text, target, reduction="none")
+    backdoor_target_loss = (image_losses[backdoor_mask].mean() + text_losses[backdoor_mask].mean()) / 2
+
+    if not torch.isfinite(backdoor_target_loss):
+        return None
+    return backdoor_target_loss
+
+
+def process_batch(model, batch, options, step):
+    input_ids, attention_mask, pixel_values, is_backdoor = batch["input_ids"].to(options.device, non_blocking = True), batch["attention_mask"].to(options.device, non_blocking = True), batch["pixel_values"].to(options.device, non_blocking = True), batch["is_backdoor"].to(options.device, non_blocking = True)
+    outputs = model(input_ids = input_ids, attention_mask = attention_mask, pixel_values = pixel_values)
+    with torch.no_grad():
+        similarity = torch.diagonal(outputs.image_embeds @ outputs.text_embeds.t())
+        topmax     = int(options.remove_fraction * len(similarity))
+        detect_indices = similarity.topk(topmax).indices
+    num_backdoor = is_backdoor.sum().item()
+    backdoor_indices = is_backdoor.nonzero()
+    backdoor_indices = backdoor_indices[:,0] if len(backdoor_indices.shape) == 2 else backdoor_indices
+    count = 0
+    if len(backdoor_indices) > 0:
+        for backdoor_index in backdoor_indices:
+            count += (backdoor_index in detect_indices)
+    if options.wandb and options.master:
+        wandb.log({f'{options.rank}/total backdoors' : num_backdoor, 'step': step})      
+        wandb.log({f'{options.rank}/correct backdoors detected' : count, 'step': step})   
+    pred_backdoor_indices = torch.zeros_like(similarity).int()
+    pred_backdoor_indices[detect_indices] = 1
+    return outputs, pred_backdoor_indices
+
+
+def train(epoch, model, data, optimizer, scheduler, scaler, options, regularizer = None):    
+    dataloader = data["train"]
+    if(options.distributed): dataloader.sampler.set_epoch(epoch)
+
+    model.train()
+    criterion = nn.CrossEntropyLoss().to(options.device)
+
+    modulo = max(1, int(dataloader.num_samples / options.batch_size / 5))
+    umodel = model.module if(options.distributed) else model
+
+    start = time.time()
+    
+    logging.info(f"Num samples: {dataloader.num_samples}, Num_batches: {dataloader.num_batches}")
+    
+    # 梯度对齐参数
+    lambda_align = getattr(options, 'lambda_align', 0.5)
+    use_gradient_align = getattr(options, 'gradient_align', False)
+    gradient_align_interval = max(1, int(getattr(options, "gradient_align_interval", 1)))
+    lambda_backdoor_target = getattr(options, 'lambda_backdoor_target', 1.0)
+    use_backdoor_target_loss = getattr(options, 'backdoor_target_loss', False)
+    
+    if use_gradient_align:
+        logging.info(f"Gradient alignment ENABLED with lambda={lambda_align}")
+        logging.info(f"Gradient alignment parameter keywords: {getattr(options, 'align_param_keywords', ['visual.layer4', 'visual.attnpool'])}")
+        logging.info(f"Gradient alignment mode: {getattr(options, 'gradient_align_mode', 'poison')}")
+        logging.info(f"Gradient alignment interval: every {gradient_align_interval} batch(es)")
+        if getattr(options, "gradient_align_hinge", False):
+            logging.info(f"Gradient alignment hinge ENABLED with margin={getattr(options, 'gradient_align_margin', 0.0)}")
+    else:
+        logging.info("Gradient alignment disabled")
+    if use_backdoor_target_loss:
+        logging.info(f"Explicit backdoor target loss ENABLED with lambda={lambda_backdoor_target}, mode={getattr(options, 'backdoor_target_mode', 'pair')}")
+    else:
+        logging.info("Explicit backdoor target loss disabled")
+    
+    # 统计
+    total_batches_with_alignment = 0
+    total_batches = 0
+    
+    for index, batch in enumerate(dataloader): 
+        step = dataloader.num_batches * (epoch - 1) + index
+        scheduler(step)
+
+        optimizer.zero_grad()
+        total_loss = None
+        penalty_loss = torch.tensor(0.0, device=options.device)
+        alignment_loss_val = torch.tensor(0.0, device=options.device)
+        backdoor_target_loss_val = torch.tensor(0.0, device=options.device)
+        cos_sim_val = 0.0
+        batch_items = 0
+        alignment_computed = False
+        backdoor_target_computed = False
+        
+        if options.sam:
+            enable_running_stats(umodel)
+            loss, contrastive_loss, constraint_loss, batch_items = compute_batch_loss(model, batch, criterion, options)
+
+            if use_backdoor_target_loss:
+                target_result = compute_backdoor_target_loss(model, batch, criterion, options)
+                if target_result is not None:
+                    backdoor_target_loss_val = target_result
+                    loss = loss + lambda_backdoor_target * backdoor_target_loss_val
+                    backdoor_target_computed = True
+            
+            if use_gradient_align and index % gradient_align_interval == 0:
+                align_result = compute_gradient_alignment_loss(model, batch, criterion, options)
+                if align_result[0] is not None:
+                    alignment_loss_val, cos_sim_val = align_result
+                    loss = loss + lambda_align * alignment_loss_val
+                    alignment_computed = True
+                    total_batches_with_alignment += 1
+            
+            if regularizer is not None:
+                penalty_loss = regularizer.penalty(model)
+            total_loss = loss + penalty_loss
+            total_loss.backward()
+            optimizer.first_step(zero_grad = True)
+
+            disable_running_stats(umodel)
+            loss_second, _, _, _ = compute_batch_loss(model, batch, criterion, options)
+            second_penalty = regularizer.penalty(model) if regularizer is not None else penalty_loss
+            (loss_second + second_penalty).backward()
+            optimizer.second_step(zero_grad = True)
+        else:
+            with autocast():
+                loss, contrastive_loss, constraint_loss, batch_items = compute_batch_loss(model, batch, criterion, options)
+
+                if use_backdoor_target_loss:
+                    target_result = compute_backdoor_target_loss(model, batch, criterion, options)
+                    if target_result is not None:
+                        backdoor_target_loss_val = target_result
+                        loss = loss + lambda_backdoor_target * backdoor_target_loss_val
+                        backdoor_target_computed = True
+                
+                if use_gradient_align and index % gradient_align_interval == 0:
+                    align_result = compute_gradient_alignment_loss(model, batch, criterion, options)
+                    if align_result[0] is not None:
+                        alignment_loss_val, cos_sim_val = align_result
+                        loss = loss + lambda_align * alignment_loss_val
+                        alignment_computed = True
+                        total_batches_with_alignment += 1
+                
+                if regularizer is not None:
+                    penalty_loss = regularizer.penalty(model)
+                total_loss = loss + penalty_loss
+                scaler.scale(total_loss).backward()
+                if use_gradient_align:
+                    scaler.unscale_(optimizer)
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                scaler.step(optimizer)
+            scaler.update()
+
+        total_batches += 1
+        umodel.logit_scale.data = torch.clamp(umodel.logit_scale.data, 0, 4.6052)
+
+        end = time.time()
+
+        if(options.master and (((index + 1) % modulo == 0) or (index == dataloader.num_batches - 1))):
+            num_samples = (index + 1) * batch_items * options.num_devices
+            dataloader_num_samples = dataloader.num_samples
+
+            display_loss = total_loss.item() if total_loss is not None else loss.item()
+            align_str = f"🔥 Align: {alignment_loss_val.item():.4f} Cos: {cos_sim_val:.4f}" if alignment_computed else "⚪ Skip"
+            target_str = f"🎯 BDTarget: {backdoor_target_loss_val.item():.4f}" if backdoor_target_computed else "BDTarget: skip"
+            logging.info(f"Train Epoch: {epoch:02d} [{num_samples}/{dataloader_num_samples} ({100.0 * (index + 1) / dataloader.num_batches:.0f}%)]\tLoss: {display_loss:.6f}\t{target_str}\t{align_str}\tTime: {end - start:.3f}\tLR: {optimizer.param_groups[0]['lr']:.9f}")
+
+            metrics = {
+                "loss": display_loss,
+                "contrastive_loss": contrastive_loss.item(),
+                "constraint_loss": constraint_loss.item(),
+                "ewc_penalty": penalty_loss.item(),
+                "backdoor_target_loss": backdoor_target_loss_val.item() if backdoor_target_computed else 0.0,
+                "gradient_alignment_loss": alignment_loss_val.item() if alignment_computed else 0.0,
+                "gradient_cos_sim": cos_sim_val,
+                "alignment_batch_ratio": total_batches_with_alignment / total_batches,
+                "time": end - start,
+                "lr": optimizer.param_groups[0]["lr"],
+            }
+            if(options.wandb):
+                for key, value in metrics.items():
+                    wandb.log({f"train/{key}": value, "step": step})
+        
+            start = time.time()
+    
+    logging.info(f"Epoch {epoch} summary: {total_batches_with_alignment}/{total_batches} batches had gradient alignment ({100*total_batches_with_alignment/total_batches:.1f}%)")
