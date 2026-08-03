@@ -8,3 +8,10 @@ __pycache__/
 *.log
 .DS_Store
 runs/
+
+# Baseline repos: keep source code in git, not generated data/artifacts.
+baselines/attack_baselines/*/data/
+baselines/attack_baselines/*/analysis/
+baselines/attack_baselines/*/trigger_inv/
+baselines/attack_baselines/*/badclip_intro.png
+baselines/defense_baselines/*/results/

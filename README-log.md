@@ -33,3 +33,7 @@ Existing validated summary copied:
 ## 2026-08-03 Dependency Completion
 
 Added shared runtime dependencies under : , , , , and .
+
+## 2026-08-03 Repository Slimming
+
+Large generated baseline data and historical visualization outputs are excluded from git. Baseline source code remains under baselines/. Runtime data/checkpoints are referenced by absolute experiment paths in run logs and configs.
