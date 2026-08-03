@@ -64,7 +64,7 @@ run_par_clean() {
   echo "[$(date)] START PAR on clean RN50" | tee -a "$LOG_ROOT/master_seed${SEED}.log"
   MASTER_PORT=29541 "$TORCHRUN" --standalone --nproc_per_node=1 train.py \
     --dataset cc3m \
-    --load-pretrained-clip "$CLEAN_CKPT" \
+    --load-pretrained-clip openai \
     --model RN50 \
     --backdoor-tuple 0,badclip,16,middle,0.5,banana \
     --train-data "$PAR_DATA_ROOT/par_cc3m_250000_abs.csv" \
