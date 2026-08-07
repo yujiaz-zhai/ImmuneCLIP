@@ -1,0 +1,45 @@
+# Model files
+*.pt
+*.pth
+*.ckpt
+*.bin
+
+# Checkpoints
+checkpoints/
+checkpoint/
+check_point/
+weights/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs and outputs
+logs/
+log/
+runs/
+outputs/
+
+# Dataset
+*.zip
+*.tar
+*.tar.gz
+
+
+# Model weights
+*.pt
+*.pth
+*.ckpt
+*.bin
+
+# Experiment outputs
+output/
+log/
+
+# Large generated files
+*.npz
+*.npy
+
+# Python cache
+__pycache__/
+*.pyc
